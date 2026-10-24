@@ -85,11 +85,16 @@ export default {
       return response;
     }
 
-    // Clean URL for the landing page.
-    if (url.pathname === '/start' || url.pathname === '/start/') {
+    // Clean URLs: the app lives at /portal, the landing at /.
+    if (url.pathname === '/portal' || url.pathname === '/portal/') {
       const rewritten = new URL(request.url);
-      rewritten.pathname = '/start.html';
+      rewritten.pathname = '/portal.html';
       return env.ASSETS.fetch(new Request(rewritten.toString(), { method: 'GET', headers: request.headers }));
+    }
+
+    // The landing used to live at /start; keep old links working.
+    if (url.pathname === '/start' || url.pathname === '/start/') {
+      return Response.redirect(new URL('/', request.url).toString(), 301);
     }
 
     return env.ASSETS.fetch(request);

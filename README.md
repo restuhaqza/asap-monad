@@ -54,7 +54,7 @@ npm test             # 144 Vitest tests
 npx wrangler deploy  # Cloudflare Worker: static assets + /api/evidence
 ```
 
-Live: **https://asapmonad.web.id** · chain `10143`
+Landing: **https://asapmonad.web.id** · App: **https://asapmonad.web.id/portal** · chain `10143`
 
 **Live data:**
 
@@ -103,7 +103,7 @@ Verification is an **exact match** on both contracts (compiler `0.8.24`, optimiz
 | End-to-end settlement | ✅ bounty #1 verified, responder paid |
 | Deployed to Monad testnet | ✅ both contracts, verified |
 | Pusher script writing hotspots on-chain | ✅ 180 hotspots, batch `0x89eb56…` |
-| Web app wired to the chain | ✅ [asapmonad.web.id](https://asapmonad.web.id) — React 19 + Vite |
+| Web app wired to the chain | ✅ [asapmonad.web.id/portal](https://asapmonad.web.id/portal) — React 19 + Vite |
 | Web app tests | ✅ 144/144 Vitest (lib, hooks, evidence, both interaction components) |
 | Mainnet deploy + verification | ⬜ before 16:30 |
 | Contract addresses in README | ✅ |

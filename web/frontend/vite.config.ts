@@ -2,6 +2,7 @@
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import type { ServerResponse } from 'node:http';
+import { fileURLToPath } from 'node:url';
 
 import {
   createMemoryEvidenceStore,
@@ -74,6 +75,11 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
     rollupOptions: {
+      // Two entry points: the landing at / and the app at /portal.
+      input: {
+        index: fileURLToPath(new URL('./index.html', import.meta.url)),
+        portal: fileURLToPath(new URL('./portal.html', import.meta.url)),
+      },
       output: {
         // viem and leaflet are the two big, long-lived dependencies
         manualChunks: {

@@ -50,7 +50,7 @@ export function Header({
 
       <div className="spacer" />
 
-      <a className="ghost-link" href="/start">
+      <a className="ghost-link" href="/">
         Why ASAP
       </a>
 
