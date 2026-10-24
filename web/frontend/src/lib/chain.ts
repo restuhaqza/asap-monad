@@ -152,6 +152,11 @@ export async function readRequiredBond(bountyId: number): Promise<bigint> {
   });
 }
 
+/** Native MON balance for the connected account. */
+export async function readBalance(address: `0x${string}`): Promise<bigint> {
+  return publicClient.getBalance({ address });
+}
+
 export async function readIsVerifier(who: `0x${string}`): Promise<boolean> {
   return publicClient.readContract({
     address: BOUNTY,

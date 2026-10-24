@@ -1,7 +1,7 @@
 /** Header: brand, live stats, network pill, connect button. */
 
 import { CHAIN } from '../lib/config';
-import { shortAddress } from '../lib/format';
+import { formatMon, shortAddress } from '../lib/format';
 import { Stats } from './Stats';
 
 interface HeaderProps {
@@ -10,6 +10,8 @@ interface HeaderProps {
   escrowWei: bigint;
   loading: boolean;
   account: `0x${string}` | null;
+  /** Native MON balance, null until read. */
+  balance: bigint | null;
   connecting: boolean;
   onConnect: () => void;
 }
@@ -20,6 +22,7 @@ export function Header({
   escrowWei,
   loading,
   account,
+  balance,
   connecting,
   onConnect,
 }: HeaderProps) {
@@ -46,6 +49,12 @@ export function Header({
       />
 
       <div className="spacer" />
+
+      {account ? (
+        <span className="balance" title={`Wallet balance on ${CHAIN.name}`} data-testid="balance">
+          <span className="mono">{balance === null ? '—' : formatMon(balance)}</span> MON
+        </span>
+      ) : null}
 
       <div className="net">
         <span className="dot" />

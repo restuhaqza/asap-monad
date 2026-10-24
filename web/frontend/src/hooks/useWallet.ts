@@ -3,22 +3,33 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { WalletClient } from 'viem';
 
-import { createInjectedWallet, readIsVerifier } from '../lib/chain';
+import { createInjectedWallet, readBalance, readIsVerifier } from '../lib/chain';
 import { ensureChain, getInjectedProvider, requestAccounts } from '../lib/eip1193';
 
 export interface WalletState {
   account: `0x${string}` | null;
   walletClient: WalletClient | null;
+  /** Native MON balance, or null before the first successful read. */
+  balance: bigint | null;
   isVerifier: boolean;
   connecting: boolean;
   connect: () => Promise<void>;
+  /** Re-read the balance, e.g. after a transaction settles. */
+  refreshBalance: () => Promise<void>;
 }
 
 export function useWallet(): WalletState {
   const [account, setAccount] = useState<`0x${string}` | null>(null);
   const [walletClient, setWalletClient] = useState<WalletClient | null>(null);
   const [isVerifier, setIsVerifier] = useState(false);
+  const [balance, setBalance] = useState<bigint | null>(null);
   const [connecting, setConnecting] = useState(false);
+
+  const refreshBalance = useCallback(async () => {
+    if (!account) return;
+    const value = await readBalance(account).catch(() => null);
+    if (value !== null) setBalance(value);
+  }, [account]);
 
   const connect = useCallback(async () => {
     setConnecting(true);
@@ -32,6 +43,7 @@ export function useWallet(): WalletState {
       setAccount(address);
       setWalletClient(createInjectedWallet(address, provider));
       setIsVerifier(await readIsVerifier(address).catch(() => false));
+      setBalance(await readBalance(address).catch(() => null));
     } finally {
       setConnecting(false);
     }
@@ -53,6 +65,7 @@ export function useWallet(): WalletState {
         setAccount(null);
         setWalletClient(null);
         setIsVerifier(false);
+        setBalance(null);
         return;
       }
 
@@ -61,11 +74,26 @@ export function useWallet(): WalletState {
       void readIsVerifier(next)
         .then(setIsVerifier)
         .catch(() => setIsVerifier(false));
+      void readBalance(next)
+        .then(setBalance)
+        .catch(() => setBalance(null));
     };
 
     provider.on('accountsChanged', handler);
     return () => provider.removeListener?.('accountsChanged', handler);
   }, []);
 
-  return { account, walletClient, isVerifier, connecting, connect };
+  // Keep the balance fresh while connected: a claim needs it, and it changes
+  // every time the user funds or spends.
+  useEffect(() => {
+    if (!account) {
+      setBalance(null);
+      return;
+    }
+    void refreshBalance();
+    const timer = setInterval(() => void refreshBalance(), 20_000);
+    return () => clearInterval(timer);
+  }, [account, refreshBalance]);
+
+  return { account, walletClient, balance, isVerifier, connecting, connect, refreshBalance };
 }

@@ -47,7 +47,10 @@ export default function App() {
     account: wallet.account,
     walletClient: wallet.walletClient,
     show,
-    onConfirmed: data.refreshBounties,
+    onConfirmed: () => {
+      void data.refreshBounties();
+      void wallet.refreshBalance();
+    },
   });
 
   const handleConnect = useCallback(() => {
@@ -81,6 +84,7 @@ export default function App() {
           escrowWei={escrow}
           loading={data.loading}
           account={wallet.account}
+          balance={wallet.balance}
           connecting={wallet.connecting}
           onConnect={handleConnect}
         />
@@ -118,6 +122,7 @@ export default function App() {
                 bounty={selectedBounty}
                 isVerifier={wallet.isVerifier}
                 account={wallet.account}
+                balanceWei={wallet.balance}
                 onOpenBounty={(hotspotId, ttlSeconds, amountWei) => {
                   void actions.openBounty(hotspotId, ttlSeconds, amountWei);
                 }}

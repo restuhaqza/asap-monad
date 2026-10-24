@@ -9,6 +9,7 @@ import {
   statusColor,
 } from '../lib/bounties';
 import { BOUNTY, EXPLORER, REGISTRY } from '../lib/config';
+import { canAfford } from '../lib/balance';
 import { formatCoords, formatFrp, formatMon, formatMonOrDash, formatTimeWIB, shortAddress } from '../lib/format';
 import { useRequiredBond } from '../hooks/useRequiredBond';
 import type { Bounty, Hotspot } from '../lib/types';
@@ -20,6 +21,8 @@ interface DetailPanelProps {
   bounty: Bounty | null;
   isVerifier: boolean;
   account: `0x${string}` | null;
+  /** Wallet balance in wei, null until read. */
+  balanceWei?: bigint | null;
   onOpenBounty: (hotspotId: number, ttlSeconds: number, amountWei: bigint) => void;
   onClaim: (
     bountyId: number,
@@ -39,6 +42,7 @@ export function DetailPanel({
   bounty,
   isVerifier,
   account,
+  balanceWei = null,
   onOpenBounty,
   onClaim,
   onAttest,
@@ -91,6 +95,16 @@ export function DetailPanel({
         </div>
       </div>
 
+      {account ? (
+        <div className={`balance-row${bounty && status === STATUS_OPEN && !canAfford(balanceWei, bond) ? ' warn' : ''}`}>
+          <span>Wallet balance</span>
+          <b className="mono">{balanceWei === null ? '—' : `${formatMon(balanceWei)} MON`}</b>
+          {bounty && status === STATUS_OPEN && !canAfford(balanceWei, bond) ? (
+            <em>bond needs {formatMon(bond)} MON</em>
+          ) : null}
+        </div>
+      ) : null}
+
       <div id="controls">
         {!bounty && (
           <OpenBountyForm
@@ -106,6 +120,7 @@ export function DetailPanel({
             key={`${hotspot.id}:${bounty.bountyId}`}
             bondWei={bond}
             bondReady={bondReady}
+            balanceWei={balanceWei}
             disabled={!account}
             onClaim={(evidence) =>
               onClaim(
