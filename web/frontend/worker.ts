@@ -85,6 +85,13 @@ export default {
       return response;
     }
 
+    // Clean URL for the landing page.
+    if (url.pathname === '/start' || url.pathname === '/start/') {
+      const rewritten = new URL(request.url);
+      rewritten.pathname = '/start.html';
+      return env.ASSETS.fetch(new Request(rewritten.toString(), { method: 'GET', headers: request.headers }));
+    }
+
     return env.ASSETS.fetch(request);
   },
 };

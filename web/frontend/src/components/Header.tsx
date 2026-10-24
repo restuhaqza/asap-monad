@@ -50,6 +50,10 @@ export function Header({
 
       <div className="spacer" />
 
+      <a className="ghost-link" href="/start">
+        Why ASAP
+      </a>
+
       {account ? (
         <span className="balance" title={`Wallet balance on ${CHAIN.name}`} data-testid="balance">
           <span className="mono">{balance === null ? '—' : formatMon(balance)}</span> MON

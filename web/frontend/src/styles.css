@@ -178,6 +178,20 @@ button {
   background: transparent;
 }
 
+/* link to the landing page */
+.ghost-link {
+  font-size: 11px;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+.ghost-link:hover {
+  color: var(--text);
+  border-color: var(--line);
+}
+
 /* wallet balance */
 .balance {
   display: inline-flex;
@@ -636,7 +650,8 @@ aside {
   }
   .spacer,
   .net,
-  .balance {
+  .balance,
+  .ghost-link {
     display: none;
   }
   header .btn {
