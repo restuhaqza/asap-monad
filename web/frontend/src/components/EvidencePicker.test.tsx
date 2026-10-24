@@ -329,3 +329,43 @@ describe('EvidencePicker — wallet balance', () => {
     expect(claimButton()).toBeEnabled();
   });
 });
+
+describe('EvidencePicker — paste and drop', () => {
+  const stored = () => `Stored · sha256 ${SHA256.slice(0, 12)}…`;
+
+  beforeEach(() => {
+    compressImageMock.mockResolvedValue(new Blob([new Uint8Array([1])], { type: 'image/jpeg' }));
+    uploadEvidenceBlobMock.mockResolvedValue({ url: UPLOAD_URL, sha256: SHA256, bytes: 4 });
+  });
+
+  it('accepts a pasted image without opening a file dialog', async () => {
+    setup();
+    const shot = new File([new Uint8Array([9])], 'screenshot.png', { type: 'image/png' });
+
+    fireEvent.paste(window, { clipboardData: { files: [shot] } });
+
+    await waitFor(() => expect(screen.getByText(stored())).toBeInTheDocument());
+    expect(compressImageMock).toHaveBeenCalledWith(shot);
+    expect(claimButton()).toBeEnabled();
+  });
+
+  it('accepts an image dropped on the panel', async () => {
+    const { container } = setup();
+    const shot = new File([new Uint8Array([9])], 'dropped.jpg', { type: 'image/jpeg' });
+
+    fireEvent.drop(container.querySelector('.ev-root')!, { dataTransfer: { files: [shot] } });
+
+    await waitFor(() => expect(screen.getByText(stored())).toBeInTheDocument());
+    expect(compressImageMock).toHaveBeenCalledWith(shot);
+  });
+
+  it('ignores a paste that carries no image', () => {
+    const { container } = setup();
+
+    fireEvent.paste(window, { clipboardData: { files: [] } });
+    fireEvent.paste(container.querySelector('.ev-root')!, { clipboardData: { files: [] } });
+
+    expect(compressImageMock).not.toHaveBeenCalled();
+    expect(screen.getByText(/Evidence must be captured within 25 km/i)).toBeInTheDocument();
+  });
+});

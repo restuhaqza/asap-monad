@@ -13,7 +13,7 @@
  * come back.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { canAfford } from '../lib/balance';
 import { compressImage } from '../lib/compress';
@@ -49,6 +49,8 @@ export function EvidencePicker({
   const [state, setState] = useState(HINT);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const dialogTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Object URLs are leaked easily; revoke whenever the preview changes.
   useEffect(() => {
@@ -57,6 +59,7 @@ export function EvidencePicker({
   }, [previewUrl]);
 
   const handleFile = async (file: File | undefined): Promise<void> => {
+    if (dialogTimer.current) clearTimeout(dialogTimer.current);
     if (!file) return;
 
     setBusy(true);
@@ -96,11 +99,58 @@ export function EvidencePicker({
     }
   };
 
+  /**
+   * Escape hatch for environments that swallow the file dialog: a screenshot
+   * pasted with ⌘V, or an image dropped on the panel, goes through exactly the
+   * same compress + upload path.
+   */
+  const handleFileRef = useRef(handleFile);
+  useEffect(() => {
+    handleFileRef.current = handleFile;
+  });
+
+  useEffect(() => {
+    const onPaste = (event: ClipboardEvent): void => {
+      const file = Array.from(event.clipboardData?.files ?? []).find((candidate) =>
+        candidate.type.startsWith('image/'),
+      );
+      if (!file) return;
+      event.preventDefault();
+      void handleFileRef.current(file);
+    };
+    window.addEventListener('paste', onPaste);
+    return () => window.removeEventListener('paste', onPaste);
+  }, []);
+
   const onPick = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const file = event.target.files?.[0];
     // Reset first: picking the same file twice must fire `change` again.
     event.target.value = '';
     void handleFile(file);
+  };
+
+  /**
+   * A few environments swallow the file dialog: a policy, an extension, or a
+   * WebView without file support. Nothing observable happens, which is exactly
+   * how this felt like a dead button. If neither a change nor a window blur
+   * arrives shortly after the click, say so instead of staying mute.
+   */
+  const watchForDialog = (): void => {
+    if (dialogTimer.current) clearTimeout(dialogTimer.current);
+    let opened = false;
+    const markOpened = () => {
+      opened = true;
+      window.removeEventListener('blur', markOpened);
+    };
+    window.addEventListener('blur', markOpened, { once: true });
+    dialogTimer.current = setTimeout(() => {
+      window.removeEventListener('blur', markOpened);
+      if (!opened) {
+        setState(
+          'No file dialog opened. Your browser or an extension may be blocking it — try a new tab, or disable extensions for this site.',
+        );
+      }
+    }, 2500);
   };
 
   const reference = evidence || manual.trim();
@@ -110,14 +160,26 @@ export function EvidencePicker({
   const canClaim = Boolean(reference) && !disabled && !busy && bondReady && affordable;
 
   return (
-    <div>
+    <div
+      className={dragging ? 'ev-root ev-dragging' : 'ev-root'}
+      onDragOver={(event) => {
+        event.preventDefault();
+        setDragging(true);
+      }}
+      onDragLeave={() => setDragging(false)}
+      onDrop={(event) => {
+        event.preventDefault();
+        setDragging(false);
+        void handleFile(event.dataTransfer.files?.[0]);
+      }}
+    >
       <div className="ev-row">
-        <label className="ev-btn">
+        <label className="ev-btn" onClick={watchForDialog}>
           <span className="ev-ico">＋</span> Choose file
           <input type="file" accept="image/*" className="ev-input" onChange={onPick} />
         </label>
 
-        <label className="ev-btn">
+        <label className="ev-btn" onClick={watchForDialog}>
           <span className="ev-ico">◉</span> Take photo
           <input
             type="file"
@@ -127,6 +189,10 @@ export function EvidencePicker({
             onChange={onPick}
           />
         </label>
+      </div>
+
+      <div className="ev-alt">
+        or paste a screenshot (⌘V) — no file dialog needed
       </div>
 
       {previewUrl ? <img className="ev-preview" src={previewUrl} alt="evidence preview" /> : null}
