@@ -1,0 +1,19 @@
+# deps
+node_modules/
+__pycache__/
+
+# foundry build artifacts — contracts/lib/forge-std is vendored on purpose so
+# `forge test` works on a fresh clone without `forge install`
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# os
+.DS_Store
+*.log
+
