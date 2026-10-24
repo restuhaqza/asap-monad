@@ -8,6 +8,7 @@
 | **Chain** | Monad Testnet, chain `10143` |
 | **Contracts** | `HotspotRegistry` `0xe691172812761cd8c1efcdbeb89192b35cacb9e7` · `FireBounty` `0x6ec281aac8f6bec24ba84c56800879b66c13097a` |
 | **Live** | https://asapmonad.web.id · app at `/portal` |
+| **Whitepaper** | https://asapmonad.web.id/whitepaper (this document) |
 | **Source** | `contracts/src/*.sol`, `web/frontend/` |
 
 Every number in this document was read from the deployed contracts or produced by the test
@@ -107,7 +108,7 @@ Six deliberate exclusions, each of which removes a way for the system to fail:
 Four layers, two contracts, one source of truth.
 
 ```mermaid
-flowchart LR
+flowchart TB
     subgraph sat["1 — Satellite"]
         F["NASA FIRMS NRT<br/>VIIRS SNPP C2"]
         S["SiPongi<br/>official Indonesian feed"]
@@ -480,7 +481,7 @@ returned inconsistent results through it. The client therefore uses **no logs, n
 (ankr first, official node second as the trusted opinion, drpc last). This is the least elegant and
 most reliable option, and a demo cannot afford an empty map because one endpoint got moody.
 
-**Test coverage.** 14 test files, **209 passing Vitest tests**, covering geo maths, bond gating,
+**Test coverage.** 15 test files, **219 passing Vitest tests**, covering geo maths, bond gating,
 receipts, the evidence pipeline, deep links, both wallet paths, and both interaction components.
 Plus **7 Foundry tests** on the contracts.
 
@@ -618,7 +619,7 @@ thirty seconds to find out whether their proof landed.
 
 ```bash
 cd contracts && forge test -vv                      # 7 passed
-cd web/frontend && npm test                          # 209 passed
+cd web/frontend && npm test                          # 219 passed
 
 export PATH="$HOME/.config/.foundry/bin:$PATH"
 RPC=https://testnet-rpc.monad.xyz

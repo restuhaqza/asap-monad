@@ -165,6 +165,14 @@
   .limit b{display:block;font-size:12px;margin-bottom:5px}
   .limit p{margin:0;font-size:11.5px;color:var(--muted)}
 
+  /* whitepaper handoff */
+  .next{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+    margin-top:22px;padding:20px 22px;border:1px solid var(--line);border-radius:14px;
+    background:linear-gradient(90deg,rgba(131,110,249,.10),rgba(18,16,26,.55))}
+  .next b{display:block;font-size:13px;margin-bottom:5px}
+  .next p{margin:0;font-size:11.5px;color:var(--muted);max-width:62ch}
+  .next .btn{flex:none}
+
   /* mechanism comparison */
   .cmp{display:grid;grid-template-columns:110px 1fr 1fr;gap:1px;background:var(--line);
     border:1px solid var(--line);border-radius:14px;overflow:hidden}
@@ -223,6 +231,7 @@
       <p>FIRE RESPONSE BOUNTY · MONAD</p>
     </div>
     <span class="spacer"></span>
+    <a class="btn" href="/whitepaper">Whitepaper</a>
     <a class="btn btn-primary" href="/portal">Open the app</a>
   </nav>
 
@@ -397,6 +406,14 @@ attest(claimId, true)
       <div class="limit"><b>Bond excludes the poorest.</b><p>A 100% bond makes fraud unprofitable, and also means a volunteer with no capital cannot respond. A cooperative bond pool is the fix.</p></div>
       <div class="limit"><b>Testnet only.</b><p>Contracts run on Monad testnet. No real money has moved, and none of this is an offer of insurance.</p></div>
     </div>
+
+    <div class="next">
+      <div>
+        <b>The long version</b>
+        <p>Mechanism design, the bond game theory, the threat model, what breaks first, and the state of record read straight from the contracts — 13 sections, no marketing.</p>
+      </div>
+      <a class="btn btn-primary" href="/whitepaper">Read the whitepaper →</a>
+    </div>
   </section>
 </div>
 
@@ -404,6 +421,7 @@ attest(claimId, true)
   <div class="wrap">
     <div class="links">
       <a href="/portal">Live app</a>
+      <a href="/whitepaper">Whitepaper</a>
       <a href="https://github.com/restuhaqza/asap-monad" target="_blank" rel="noreferrer">GitHub</a>
       <a href="https://testnet.monadscan.com" target="_blank" rel="noreferrer">Monadscan</a>
       <a href="https://github.com/restuhaqza/asap-monad#deployment" target="_blank" rel="noreferrer">Contract addresses</a>

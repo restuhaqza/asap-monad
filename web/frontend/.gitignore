@@ -4,6 +4,9 @@ node_modules/
 # vite build output
 dist/
 
+# generated from docs/WHITEPAPER.md by scripts/whitepaper.mjs (npm run whitepaper)
+whitepaper.html
+
 # wrangler dry-run output
 .dryrun/
 

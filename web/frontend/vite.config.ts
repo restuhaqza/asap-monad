@@ -75,10 +75,12 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
     rollupOptions: {
-      // Two entry points: the landing at / and the app at /portal.
+      // Three entry points: the landing at /, the app at /portal, and the
+      // whitepaper at /whitepaper (generated from docs/WHITEPAPER.md).
       input: {
         index: fileURLToPath(new URL('./index.html', import.meta.url)),
         portal: fileURLToPath(new URL('./portal.html', import.meta.url)),
+        whitepaper: fileURLToPath(new URL('./whitepaper.html', import.meta.url)),
       },
       output: {
         // viem and leaflet are the two big, long-lived dependencies

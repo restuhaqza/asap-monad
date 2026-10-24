@@ -15,14 +15,14 @@ ASAP is the layer between the satellite and the shovel. A hotspot opens a bounty
 | Path | What it is |
 |---|---|
 | [`docs/SPEC.md`](docs/SPEC.md) | Full spec: architecture, sequences, state machine, data model, contract API, invariants, limitations, demo script |
-| [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md) | Whitepaper: problem, mechanism design, money flow, game theory, threat model, why Monad, roadmap, state of record |
+| [`docs/WHITEPAPER.md`](docs/WHITEPAPER.md) | Whitepaper: problem, mechanism design, money flow, game theory, threat model, why Monad, roadmap, state of record · rendered at [asapmonad.web.id/whitepaper](https://asapmonad.web.id/whitepaper) |
 | [`docs/FLOW.md`](docs/FLOW.md) / [`docs/diagram.html`](docs/diagram.html) | Alur satelit → kontrak → layar, money flow, arti warna titik |
 | [`contracts/src/HotspotRegistry.sol`](contracts/src/HotspotRegistry.sol) | Append-only hotspot record anchored to the source CSV hash |
 | [`contracts/src/FireBounty.sol`](contracts/src/FireBounty.sol) | Escrow + responder bonds + verifier quorum + slashing |
 | [`contracts/test/FireBounty.t.sol`](contracts/test/FireBounty.t.sol) | 7 tests: payout, bond, radius, timestamp, slash, expiry, self-attest |
 | [`scripts/fetch-hotspots.py`](scripts/fetch-hotspots.py) | Pulls live NASA FIRMS data, writes the fixture, prints the `commitBatch` command |
 | [`scripts/wallet-tui.sh`](scripts/wallet-tui.sh) | Dev tool: interactive terminal wallet — balance, send MON, switch testnet/mainnet, keystore or in-memory key |
-| [`web/frontend/`](web/frontend/) | React 19 + Vite app: Leaflet map, bounty/claim/attest flows, photo evidence upload, payment receipts · 209 Vitest tests |
+| [`web/frontend/`](web/frontend/) | React 19 + Vite app: Leaflet map, bounty/claim/attest flows, photo evidence upload, payment receipts · 219 Vitest tests |
 | [`web/data/hotspots.json`](web/data/hotspots.json) | Generated hotspot fixture used by the pusher |
 | [`docs/asap-demo-30s.mp4`](docs/asap-demo-30s.mp4) | 30 s demo cut: the gap, the bounty, the payout |
 
@@ -52,7 +52,7 @@ npm install
 npm run dev          # http://localhost:5173 — app plus a dev evidence endpoint
 npm run build:testnet   # typecheck, then bundle chain-10143 build to dist/
 npm run build:mainnet   # same source, chain-143 build to dist-mainnet/
-npm test                # 209 Vitest tests
+npm test                # 219 Vitest tests
 npm run cf:deploy:testnet   # -> testnet.asapmonad.web.id
 npm run cf:deploy:mainnet   # -> asapmonad.web.id (root)
 ```
@@ -125,7 +125,7 @@ Verification is an **exact match** on both contracts (compiler `0.8.24`, optimiz
 | Deployed to Monad testnet | ✅ both contracts, verified |
 | Pusher script writing hotspots on-chain | ✅ 180 hotspots, batch `0x89eb56…` |
 | Web app wired to the chain | ✅ [asapmonad.web.id/portal](https://asapmonad.web.id/portal) — React 19 + Vite |
-| Web app tests | ✅ 209/209 Vitest (lib, hooks, evidence, stats, receipt, both interaction components) |
+| Web app tests | ✅ 219/219 Vitest (lib, hooks, evidence, stats, receipt, both interaction components) |
 | `"no responder"` counter | ✅ header counter read from bounty status 4 — **0 today**, no bounty has expired yet; an expiry on bounty #4 becomes callable at 18:22 WIB |
 | Payment receipt on verified bounties | ✅ responder, distance, evidence, approvals and verifier reward on every verified bounty; the exact payout appears when this browser waited for the settlement tx, bounties settled earlier say "settled before this build" instead of guessing |
 | Mainnet deploy + verification | ⬜ before 16:30 |
