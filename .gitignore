@@ -15,6 +15,10 @@ contracts/broadcast/
 !.env.testnet
 !.env.mainnet
 
+# build output for the two network bundles
+web/frontend/dist/
+web/frontend/dist-mainnet/
+
 # deploy artifacts (addresses are also written into .env.mainnet)
 .mainnet-registry
 .mainnet-bounty
