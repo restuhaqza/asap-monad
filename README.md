@@ -69,19 +69,23 @@ Open [hotspot #3 on the mainnet app](https://asapmonad.web.id/portal#h=3) and th
 
 ## Architecture
 
-```
-NASA FIRMS CSV ──► scripts/fetch-hotspots.py ──► HotspotRegistry   (bytes32 source hash + rows)
-                                                        │
-                        FireBounty  ◄── opens / funds ───┤
-                            │                            │
-             claim (bond ≥ pool) │                       │
-                            ▼                            │
-                 evidence photo ──► Worker ──► R2        │
-                 (SHA-256 keyed)                │        │
-                            │                   │        │
-                       2 verifiers ──► payout ┘          │
-                                                        │
-           React app (no backend) ◄── paced eth_call ────┘
+```mermaid
+flowchart LR
+    subgraph data["Data layer"]
+        A["NASA FIRMS CSV"] --> B["fetch-hotspots.py"]
+    end
+    subgraph chain["Monad"]
+        B -->|"commitBatch + publish"| C["HotspotRegistry<br/>append-only + source hash"]
+        C --> D["FireBounty<br/>escrow · bonds · quorum"]
+    end
+    subgraph ground["Ground"]
+        R["Responder"] -->|"claim + bond ≥ pool"| D
+        R --> P["Photo → Worker → R2<br/>keyed by SHA-256"]
+    end
+    D -->|"2 approvals"| PAY["Payout in one block"]
+    D -->|"deadline passes"| EXP["BountyExpired"]
+    APP["React app<br/>no indexer, no backend"] -->|"paced getHotspot"| C
+    APP -->|"getBounty / getClaim"| D
 ```
 
 - **Two contracts, nothing else.** `HotspotRegistry` is an append-only record anchored to the source file; `FireBounty` holds escrow, bonds and quorum. No token, no proxy, no owner escape hatch over user funds.
