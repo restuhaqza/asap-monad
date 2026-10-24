@@ -7,6 +7,7 @@ import { Stats } from './Stats';
 interface HeaderProps {
   hotspotCount: number;
   openCount: number;
+  expiredCount: number;
   escrowWei: bigint;
   loading: boolean;
   account: `0x${string}` | null;
@@ -19,6 +20,7 @@ interface HeaderProps {
 export function Header({
   hotspotCount,
   openCount,
+  expiredCount,
   escrowWei,
   loading,
   account,
@@ -44,6 +46,7 @@ export function Header({
       <Stats
         hotspotCount={hotspotCount}
         openCount={openCount}
+        expiredCount={expiredCount}
         escrowWei={escrowWei}
         loading={loading}
       />

@@ -12,7 +12,7 @@ import { useDeepLink } from './hooks/useDeepLink';
 import { useHotspots } from './hooks/useHotspots';
 import { useToast } from './hooks/useToast';
 import { useWallet } from './hooks/useWallet';
-import { countOpen, sortByFrpDesc, statusMap, totalEscrow } from './lib/bounties';
+import { countExpired, countOpen, sortByFrpDesc, statusMap, totalEscrow } from './lib/bounties';
 import { errorMessage } from './lib/errors';
 
 export default function App() {
@@ -38,6 +38,7 @@ export default function App() {
   const sorted = useMemo(() => sortByFrpDesc(data.hotspots), [data.hotspots]);
   const statuses = useMemo(() => statusMap(data.byHotspot), [data.byHotspot]);
   const openCount = useMemo(() => countOpen(data.bounties), [data.bounties]);
+  const expiredCount = useMemo(() => countExpired(data.bounties), [data.bounties]);
   const escrow = useMemo(() => totalEscrow(data.bounties), [data.bounties]);
 
   const selectedHotspot = selected === null ? null : (data.byId.get(selected) ?? null);
@@ -81,6 +82,7 @@ export default function App() {
         <Header
           hotspotCount={data.hotspots.length}
           openCount={openCount}
+          expiredCount={expiredCount}
           escrowWei={escrow}
           loading={data.loading}
           account={wallet.account}

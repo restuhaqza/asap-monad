@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   bountyFor,
+  countExpired,
   countOpen,
   displayStatusLabel,
   hotspotPool,
@@ -166,6 +167,44 @@ describe('countOpen', () => {
 
   it('is 0 for an empty list', () => {
     expect(countOpen([])).toBe(0);
+  });
+});
+
+describe('countExpired', () => {
+  it('is 0 for an empty list', () => {
+    expect(countExpired([])).toBe(0);
+  });
+
+  it('is 0 when nothing has expired', () => {
+    expect(
+      countExpired([
+        bounty({ bountyId: 1, status: STATUS_OPEN }),
+        bounty({ bountyId: 2, status: STATUS_CLAIMED }),
+        bounty({ bountyId: 3, status: STATUS_VERIFIED }),
+      ]),
+    ).toBe(0);
+  });
+
+  it('counts every expired bounty', () => {
+    expect(
+      countExpired([
+        bounty({ bountyId: 1, status: STATUS_EXPIRED }),
+        bounty({ bountyId: 2, status: STATUS_EXPIRED }),
+        bounty({ bountyId: 3, status: STATUS_EXPIRED }),
+      ]),
+    ).toBe(3);
+  });
+
+  it('ignores the other statuses in a mixed list', () => {
+    expect(
+      countExpired([
+        bounty({ bountyId: 1, status: STATUS_EXPIRED }),
+        bounty({ bountyId: 2, status: STATUS_OPEN }),
+        bounty({ bountyId: 3, status: STATUS_EXPIRED }),
+        bounty({ bountyId: 4, status: STATUS_CLAIMED }),
+        bounty({ bountyId: 5, status: STATUS_VERIFIED }),
+      ]),
+    ).toBe(2);
   });
 });
 

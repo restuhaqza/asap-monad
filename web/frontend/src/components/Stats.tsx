@@ -1,16 +1,18 @@
-/** The three live counters in the header. */
+/** The four live counters in the header. */
 
+import { STATUS_COLORS } from '../lib/config';
 import { formatMon } from '../lib/format';
 
 interface StatsProps {
   hotspotCount: number;
   openCount: number;
+  expiredCount: number;
   escrowWei: bigint;
   /** True until the first wave (or the cache) has landed. */
   loading: boolean;
 }
 
-export function Stats({ hotspotCount, openCount, escrowWei, loading }: StatsProps) {
+export function Stats({ hotspotCount, openCount, expiredCount, escrowWei, loading }: StatsProps) {
   return (
     <div className="stats">
       <div className="stat">
@@ -22,6 +24,12 @@ export function Stats({ hotspotCount, openCount, escrowWei, loading }: StatsProp
           {loading && openCount === 0 ? '—' : openCount}
         </b>
         <span>bounties open</span>
+      </div>
+      <div className="stat">
+        <b className="mono" style={{ color: STATUS_COLORS[4] }}>
+          {loading && expiredCount === 0 ? '—' : expiredCount}
+        </b>
+        <span>fires with no responder</span>
       </div>
       <div className="stat">
         <b className="mono">{escrowWei > 0n ? formatMon(escrowWei) : loading ? '—' : '0.000'}</b>

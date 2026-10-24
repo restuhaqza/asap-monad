@@ -75,6 +75,14 @@ export function countOpen(bounties: readonly Bounty[]): number {
   return bounties.filter((bounty) => bounty.status === STATUS_OPEN).length;
 }
 
+/**
+ * Header stat: how many bounties expired with nobody credible showing up.
+ * This is the accountability number — a fire that was funded and ignored.
+ */
+export function countExpired(bounties: readonly Bounty[]): number {
+  return bounties.filter((bounty) => bounty.status === STATUS_EXPIRED).length;
+}
+
 /** Header stat: everything currently sitting in escrow, in wei. */
 export function totalEscrow(bounties: readonly Bounty[]): bigint {
   return bounties.reduce((sum, bounty) => sum + bounty.pool, 0n);

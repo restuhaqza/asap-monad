@@ -667,9 +667,12 @@ aside {
   .stats {
     order: 3;
     width: 100%;
+    /* Four counters at 380 px would leave ~73 px of text per cell, so the strip
+       becomes 2x2 instead of an unreadable single row. */
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
   }
   .stat {
-    flex: 1;
     min-width: 0;
     padding: 5px 8px;
   }
