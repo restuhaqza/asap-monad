@@ -16,7 +16,7 @@ import {
   STATUS_VERIFIED,
   statusColor,
 } from '../lib/bounties';
-import { BOUNTY, EXPLORER, REGISTRY } from '../lib/config';
+import { BOUNTY, CHAIN, EXPLORER, REGISTRY } from '../lib/config';
 import { canAfford } from '../lib/balance';
 import {
   confidenceLabel,
@@ -102,7 +102,7 @@ export function DetailPanel({
   const pool = bounty?.pool ?? 0n;
   const place = nearestPlace(hotspot.lat, hotspot.lon);
   const connectedHint = account ? null : (
-    <div className="hint">Connect a wallet on Monad Testnet to fund, claim or attest.</div>
+    <div className="hint">Connect a wallet on {CHAIN.name} to fund, claim or attest.</div>
   );
 
   return (

@@ -12,6 +12,7 @@ import * as L from 'leaflet';
 
 import { statusColor } from '../lib/bounties';
 import {
+  CHAIN,
   LABEL_MIN_ZOOM,
   MAP_CENTER,
   MAP_MAX_ZOOM,
@@ -182,7 +183,7 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
         <span className="sw" style={{ background: 'var(--dead)' }} />
         <span>
           Live hotspots · <span className="mono">{shown}</span> of{' '}
-          <span className="mono">{total}</span> on Monad testnet
+          <span className="mono">{total}</span> on {CHAIN.name}
         </span>
       </div>
 
