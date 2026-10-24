@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ASAP — diagram alur</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #0B0A0F; --panel: #12101A; --line: #241F33; --monad: #836EF9;
+    --haze: #F5A524; --ok: #3DD68C; --dead: #FF5C5C; --muted: #8B849E;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ink); color: #EDEAF6;
+    font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+  }
+  header {
+    padding: 34px 40px 22px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap;
+  }
+  h1 { font-size: 20px; margin: 0; }
+  header .sub { color: var(--muted); font-size: 12px; }
+  header .right { margin-left: auto; font-size: 11px; color: var(--muted);
+    font-family: 'JetBrains Mono', monospace; }
+  main { max-width: 1180px; margin: 0 auto; padding: 34px 40px 90px; }
+  section { margin-bottom: 54px; }
+  .kicker {
+    font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--monad); font-weight: 700; margin-bottom: 8px;
+  }
+  h2 { font-size: 17px; margin: 0 0 10px; font-weight: 700; }
+  p.lead { color: #BFB8D1; font-size: 13px; line-height: 1.65; margin: 0 0 18px; max-width: 800px; }
+  p.lead code {
+    font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+    background: #1B1726; border: 1px solid var(--line); border-radius: 4px;
+    padding: 1px 5px; color: #D9D3EA;
+  }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 24px 18px; overflow-x: auto;
+  }
+  .card + .card { margin-top: 14px; }
+  .svg-host { display: flex; justify-content: center; min-height: 60px; }
+  .svg-host svg { max-width: 100%; height: auto; }
+  .err { color: var(--dead); font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 12px; }
+  .note {
+    margin-top: 12px; font-size: 11.5px; color: var(--muted);
+    border-left: 2px solid var(--line); padding-left: 12px; line-height: 1.65;
+  }
+  .note b { color: #D9D3EA; font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; margin-top: 18px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 500; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
+  td.dot { width: 34px; }
+  .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 999px; }
+  .pill { font-size: 10px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+  footer {
+    border-top: 1px solid var(--line); padding: 18px 40px; color: var(--muted);
+    font-size: 11px; display: flex; gap: 18px; flex-wrap: wrap;
+  }
+  .warn { color: var(--haze); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ASAP — diagram alur</h1>
+  <span class="sub">Fire Response Bounty Network · Monad Blitz Jogja Vol. 2</span>
+  <span class="right">24 Okt 2026</span>
+</header>
+
+<main>
+
+  <section>
+    <div class="kicker">Diagram 1</div>
+    <h2>Dari satelit sampai keempat layar aplikasi</h2>
+    <p class="lead">
+      Layar aplikasi tidak menampilkan data karangan. Layar itu pembaca dari dua kontrak,
+      dan kontrak diisi oleh <code>fetch-hotspots.py</code> yang menarik file NASA FIRMS.
+      Panah ke kanan adalah uang dan state, panah ke kiri adalah bacaan.
+    </p>
+    <div class="card"><div class="svg-host" data-src="d1"></div></div>
+    <div class="note">
+      <b>Yang belum ada:</b> panah dari layar 2 dan 3 menuju <code>FireBounty</code> masih putus.
+      Tombol claim dan attest baru mengubah state di memori browser. Menyambungkannya adalah block 12:15–14:00.
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">Diagram 2</div>
+    <h2>Ke mana uangnya pergi</h2>
+    <p class="lead">
+      Pertanyaan pertama setiap juri. Semua angka di bawah ada di <code>FireBounty.sol</code>, bukan di slide.
+      Bond selalu 100% dari pool.
+    </p>
+    <div class="card"><div class="svg-host" data-src="d2"></div></div>
+    <div class="card"><div class="svg-host" data-src="d2b"></div></div>
+    <div class="note">
+      <b>Konsekuensi yang harus dihafal:</b> bond lebih besar dari imbalan maksimal sebuah kebohongan,
+      jadi melapor palsu selalu merugi. Tapi relawan tanpa modal juga tidak bisa ikut. Itu trade-off sadar,
+      tertulis di limitasi spec, dan jadi slide roadmap bond pool.
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">Diagram 3</div>
+    <h2>Arti warna titik di peta</h2>
+    <p class="lead">Warna yang kamu klik-klik tadi adalah state kontrak, bukan hiasan.</p>
+    <div class="card"><div class="svg-host" data-src="d3"></div></div>
+
+    <table>
+      <thead>
+        <tr><th>Warna</th><th>State</th><th>Arti di pitch</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="dot"><span class="swatch" style="background:var(--haze)"></span></td><td>Open</td><td>Ada uang menunggu, belum ada yang datang</td></tr>
+        <tr><td class="dot"><span class="swatch" style="background:#5B9DFF"></span></td><td>Claimed</td><td>Seseorang sudah menyetor bond dan menyerahkan bukti</td></tr>
+        <tr><td class="dot"><span class="swatch" style="background:var(--ok)"></span></td><td>Verified</td><td>Dua verifier setuju, payout sudah jalan</td></tr>
+        <tr><td class="dot"><span class="swatch" style="background:var(--dead)"></span></td><td>Expired</td><td>Ada uang, tidak ada yang datang — ini produknya</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <div class="kicker">Diagram 4</div>
+    <h2>Kenapa merah lebih penting daripada hijau</h2>
+    <p class="lead">
+      Sistem lain berhenti di "api terdeteksi". Yang kita jual baris terakhir: catatan publik tentang api yang dibiarkan.
+    </p>
+    <div class="card"><div class="svg-host" data-src="d4"></div></div>
+  </section>
+
+</main>
+
+<footer>
+  <span>ASAP · Monad Blitz Jogja Vol. 2</span>
+  <span class="pill">data: NASA FIRMS VIIRS SNPP C2 NRT</span>
+  <span class="warn">kontrak nyata, 7 test lulus · aplikasi web belum dibangun</span>
+</footer>
+
+<!-- diagram sources: kept in script[type=text/plain] so the HTML parser never touches them -->
+<script type="text/plain" id="d1">
+flowchart LR
+    subgraph sat["1 Satelit"]
+        direction TB
+        S1["NASA FIRMS VIIRS SNPP C2"]
+    end
+    subgraph orc["2 Oracle, skrip siapa pun boleh jalankan"]
+        direction TB
+        O2["commitBatch: fileHash + fileUrl"]
+        O3["publish: 200 baris per transaksi"]
+        O1["fetch-hotspots.py"]
+    end
+    subgraph chain["3 Monad"]
+        direction TB
+        R["HotspotRegistry"]
+        B["FireBounty"]
+    end
+    subgraph ui["4 Layar aplikasi"]
+        direction TB
+        U1["Screen 1: peta + counter"]
+        U2["Screen 2: claim drawer"]
+        U3["Screen 3: verifier queue"]
+        U4["Screen 4: verified + payout"]
+    end
+
+    S1 --> O1
+    O1 --> O2 --> R
+    O1 --> O3 --> R
+    R --> B
+    B -- BountyOpened --> U1
+    U2 -- claim + bond --> B
+    B -- ClaimSubmitted --> U3
+    U3 -- attest --> B
+    B -- ClaimVerified --> U4
+</script>
+
+<script type="text/plain" id="d2">
+flowchart LR
+    BK["Backer: konsesi, CSR, proyek karbon"] -- "1.000 MON" --> POOL["Escrow FireBounty 2.000 MON"]
+    RS["Responder"] -- "1.000 MON bond" --> POOL
+    POOL -- "1.900 MON payout" --> RS
+    POOL -- "0.100 MON reward" --> VR["2 verifier, 0.050 masing-masing"]
+</script>
+
+<script type="text/plain" id="d2b">
+flowchart LR
+    BOND["Bond responder 1.000 MON"] -- "500 MON" --> BK2["Kembali ke backer"]
+    BOND -- "500 MON" --> VJ["Dibagi ke 2 verifier penolak"]
+    POOL2["Pool bounty tetap utuh"] --> RE["Bounty dibuka lagi selama deadline belum lewat"]
+</script>
+
+<script type="text/plain" id="d3">
+stateDiagram-v2
+    [*] --> Open: openBounty
+    Open --> Claimed: claim + bond
+    Claimed --> Verified: 2 approvals
+    Claimed --> Open: 2 rejections, bond slashed
+    Open --> Expired: deadline lewat
+    Claimed --> Expired: tidak ada quorum sampai grace
+    Verified --> [*]
+    Expired --> [*]
+</script>
+
+<script type="text/plain" id="d4">
+flowchart TD
+    H["22.760 deteksi per 24 jam"] --> BQ["Bounty dibuka"]
+    BQ --> ANS{"Ada yang datang dalam 6 jam?"}
+    ANS -- Ya --> V["Verified: api ditangani, bukti on-chain"]
+    ANS -- Tidak --> E["Expired: tercatat publik tidak ada yang datang"]
+    E --> P["Tekanan publik ke pemegang konsesi"]
+    V --> R2["Budget pertahanan api terbukti bekerja"]
+    P --> BQ
+    R2 --> BQ
+</script>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+  mermaid.initialize({
+    startOnLoad: false,
+    securityLevel: 'loose',
+    theme: 'base',
+    themeVariables: {
+      background: '#12101A',
+      primaryColor: '#1B1726',
+      primaryTextColor: '#EDEAF6',
+      primaryBorderColor: '#836EF9',
+      secondaryColor: '#1B1726',
+      tertiaryColor: '#1B1726',
+      lineColor: '#5B5473',
+      textColor: '#D9D3EA',
+      mainBkg: '#1B1726',
+      nodeBorder: '#836EF9',
+      clusterBkg: '#0F0D16',
+      clusterBorder: '#2E2740',
+      edgeLabelBackground: '#12101A',
+      fontFamily: 'Inter, system-ui, sans-serif',
+      fontSize: '13px',
+    },
+    flowchart: { curve: 'basis', padding: 16, nodeSpacing: 44, rankSpacing: 60, useMaxWidth: true },
+    state: { useMaxWidth: true },
+  });
+
+  const sources = [...document.querySelectorAll('script[type="text/plain"][id]')];
+
+  for (const src of sources) {
+    const host = document.querySelector(`.svg-host[data-src="${src.id}"]`);
+    if (!host) continue;
+    try {
+      const { svg } = await mermaid.render('svg_' + src.id, src.textContent.trim());
+      host.innerHTML = svg;
+    } catch (err) {
+      host.innerHTML = `<div class="err">render error (${src.id}): ${String(err.message || err)}</div>`;
+      console.error(src.id, err);
+    }
+  }
+</script>
+</body>
+</html>
