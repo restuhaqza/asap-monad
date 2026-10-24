@@ -18,6 +18,7 @@ ASAP is the layer between the satellite and the shovel. A hotspot opens a bounty
 | [`contracts/src/FireBounty.sol`](contracts/src/FireBounty.sol) | Escrow + responder bonds + verifier quorum + slashing |
 | [`contracts/test/FireBounty.t.sol`](contracts/test/FireBounty.t.sol) | 7 tests: payout, bond, radius, timestamp, slash, expiry, self-attest |
 | [`scripts/fetch-hotspots.py`](scripts/fetch-hotspots.py) | Pulls live NASA FIRMS data, writes the fixture, prints the `commitBatch` command |
+| [`scripts/wallet-tui.sh`](scripts/wallet-tui.sh) | Dev tool: interactive terminal wallet — balance, send MON, switch testnet/mainnet, keystore or in-memory key |
 | [`web/data/hotspots.json`](web/data/hotspots.json) | Generated hotspot fixture used by the app and the pusher |
 
 ## Quickstart

@@ -60,6 +60,7 @@ GAS_PRICE_WEI=""
 NONCE=""
 LATENCY_MS=""
 CHECKED_AT=""
+CHECKED_EPOCH=0
 STATS_ERR=""
 
 MSG=""
@@ -162,10 +163,8 @@ toggle_network() {
 
 clear_stats() {
   BAL_WEI=""; BLOCK_NO=""; GAS_PRICE_WEI=""; NONCE=""
-  LATENCY_MS=""; CHECKED_AT=""; STATS_ERR=""
+  LATENCY_MS=""; CHECKED_AT=""; STATS_ERR=""; CHECKED_EPOCH=0
 }
-
-net_tag() { [ "$NET" = "mainnet" ] && printf '%sMAINNET%s' "$C_M" "$C_RST" || printf '%sTESTNET%s' "$C_C" "$C_RST"; }
 
 # -------------------------------------------------------------- formatting --
 commify() {
@@ -214,17 +213,15 @@ fetch_stats() {
   [ -n "$W_ADDR" ] || { clear_stats; return 1; }
   STATS_ERR=""
 
-  local payload t0 t1 body
+  local payload body tt
   payload=$(printf '[{"jsonrpc":"2.0","id":1,"method":"eth_getBalance","params":["%s","latest"]},{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]},{"jsonrpc":"2.0","id":3,"method":"eth_gasPrice","params":[]},{"jsonrpc":"2.0","id":4,"method":"eth_getTransactionCount","params":["%s","latest"]}]' "$W_ADDR" "$W_ADDR")
 
-  t0=$(date +%s)
-  if ! curl -sS --max-time 10 -o "$TMP_BODY" -X POST \
-        -H 'content-type: application/json' -d "$payload" "$RPC" 2>/dev/null; then
+  if ! tt=$(curl -sS --max-time 10 -o "$TMP_BODY" -w '%{time_total}' -X POST \
+        -H 'content-type: application/json' -d "$payload" "$RPC" 2>/dev/null); then
     STATS_ERR="rpc unreachable - press r to retry"
     return 1
   fi
-  t1=$(date +%s)
-  LATENCY_MS="$(( (t1 - t0) * 1000 ))"
+  LATENCY_MS=$(awk -v t="${tt:-0}" 'BEGIN{ printf "%.0f", t * 1000 }')
 
   body=$(cat "$TMP_BODY")
   case "$body" in *'"result"'*) ;; *) STATS_ERR="bad rpc response"; return 1 ;; esac
@@ -249,6 +246,7 @@ fetch_stats() {
 
   [ -n "$BAL_WEI" ] || { STATS_ERR="could not read balance"; return 1; }
   CHECKED_AT=$(date '+%H:%M:%S')
+  CHECKED_EPOCH=$(date +%s)
   return 0
 }
 
@@ -392,7 +390,8 @@ draw_main() {
   esac
   out+=$(printf '%s╰%s╯%s\n' "$C_DIM" "$(hline "$W")" "$C_RST")
   out+=$'\n'
-  out+=$(printf '%s  RPC %s  ·  %s  ·  arrow keys + enter  ·  q quit%s\n' "$C_DIM" "$RPC" "$(short_addr "$W_ADDR")" "$C_RST")
+  out+=$(printf '%s  %s  ·  %s ms  ·  %s  ·  arrow keys + enter  ·  q quit%s\n' \
+         "$C_DIM" "$RPC" "${LATENCY_MS:-?}" "$(short_addr "$W_ADDR")" "$C_RST")
 
   printf '%s' "$out"
 }
@@ -436,6 +435,21 @@ screen_send() {
   if ! has_signer; then
     printf '%s  no signing key loaded - only a watch address is set.%s\n' "$C_Y" "$C_RST"
     printf '  load a key first (menu "w"), or sign elsewhere.\n'; pause_enter; return
+  fi
+
+  # unlock the keystore up front: keeps the password prompt under our control
+  # and proves which address will actually sign.
+  local pw=""
+  if [ -z "$PK_MEM" ]; then
+    printf '  keystore password for "%s" (hidden): ' "$ACCOUNT"
+    IFS= read -rs pw || true; printf '\n'
+    local unlocked
+    unlocked=$(cast wallet address --account "$ACCOUNT" --password "$pw" 2>/dev/null)
+    if ! is_addr "$unlocked"; then
+      printf '\n%s  wrong password or unreadable keystore "%s"%s\n' "$C_R" "$ACCOUNT" "$C_RST"
+      pause_enter; return
+    fi
+    W_ADDR="$unlocked"
   fi
 
   printf '  from  %s  [%s]\n\n' "$W_ADDR" "$(wallet_kind)"
@@ -495,32 +509,45 @@ screen_send() {
 
   printf '\n  %sbroadcasting...%s\n' "$C_DIM" "$C_RST"
   local signer=(--private-key "$PK_MEM")
-  [ -z "$PK_MEM" ] && signer=(--account "$ACCOUNT")
+  [ -z "$PK_MEM" ] && signer=(--account "$ACCOUNT" --password "$pw")
 
+  # --async prints the hash only, so the receipt is fetched separately: no
+  # dependency on the shape of `cast send --json` output.
   local out hash
   out=$(cast send "$to" --value "${amt}ether" --gas-limit "$gas" \
-        "${signer[@]}" --rpc-url "$RPC" --json --confirmations 1 2>&1)
-  hash=$(printf '%s' "$out" | grep -oE '"(transactionHash|txHash)"[[:space:]]*:[[:space:]]*"0x[0-9a-fA-F]{64}"' | head -1 | grep -oE '0x[0-9a-fA-F]{64}')
+        "${signer[@]}" --rpc-url "$RPC" --async 2>&1)
+  hash=$(printf '%s' "$out" | grep -oE '0x[0-9a-fA-F]{64}' | head -1)
 
   clear_screen
   if [ -z "$hash" ]; then
     local reason
     reason=$(printf '%s' "$out" | sed -n 's/.*"message":"\([^"]*\)".*/\1/p' | head -1)
-    [ -z "$reason" ] && reason=$(printf '%s' "$out" | head -1)
+    [ -z "$reason" ] && reason=$(printf '%s' "$out" | grep -vE '^[[:space:]]*$' | head -1)
     printf '%s  transaction failed%s\n\n' "$C_R" "$C_RST"
     printf '  %s\n\n' "$reason"
     case "$reason" in
       *insufficient*|*balance*) printf '  %stop up on %s and retry.%s\n' "$C_DIM" "$NET_LABEL" "$C_RST" ;;
     esac
-    set_msg "send failed: $reason" err
+    set_msg "send failed: ${reason:0:56}" err
     pause_enter; return
   fi
 
-  local status
-  status=$(printf '%s' "$out" | grep -oE '"status"[[:space:]]*:[[:space:]]*"(0x1|0x0)"' | head -1 | grep -oE '0x[01]')
+  # Monad finalises in about a second; poll briefly so the receipt is shown.
+  local rec="" i=0
+  while [ "$i" -lt 20 ]; do
+    rec=$(cast receipt "$hash" --rpc-url "$RPC" 2>/dev/null)
+    [ -n "$rec" ] && break
+    i=$(( i + 1 )); sleep 1
+  done
+
+  clear_screen
+  local st gasused
+  st=$(printf '%s' "$rec" | awk '$1=="status"{print $2" "$3}' | head -1)
+  gasused=$(printf '%s' "$rec" | awk '$1=="gasUsed"{print $2}' | head -1)
   printf '%s  SENT%s\n\n' "$C_G$C_B" "$C_RST"
   printf '  tx      %s\n' "$hash"
-  printf '  status  %s\n' "${status:-unknown (check the explorer)}"
+  printf '  status  %s\n' "${st:-pending - check the explorer}"
+  [ -n "$gasused" ] && printf '  gasUsed %s\n' "$(commify "$gasused")"
   printf '  amount  %s MON -> %s\n' "$amt" "$to"
   printf '  network %s\n' "$NET_LABEL"
   printf '\n  %s%s/tx/%s%s\n' "$C_C" "$EXPLORER" "$hash" "$C_RST"
@@ -545,6 +572,10 @@ screen_wallet() {
 
   case "$ch" in
     1)
+      if [ -n "$PK_MEM" ]; then
+        set_msg "a key is loaded - forget it (option 5) before watching another address" err
+        pause_enter; return
+      fi
       printf '\n  address: '
       local a; IFS= read -r a || return
       a="$(printf '%s' "$a" | tr -d '[:space:]')"
@@ -587,7 +618,13 @@ screen_wallet() {
       if [ -n "$p" ]; then
         local a3
         a3=$(cast wallet address --account "$n" --password "$p" 2>/dev/null || true)
-        is_addr "$a3" && W_ADDR="$a3"
+        if is_addr "$a3"; then W_ADDR="$a3"; fi
+      fi
+      if ! is_addr "${W_ADDR:-}"; then
+        printf '\n  address of that account (0x..., blank to fill later): '
+        local a4; IFS= read -r a4 || true
+        a4="$(printf '%s' "$a4" | tr -d '[:space:]')"
+        is_addr "$a4" && W_ADDR=$(cast to-check-sum-address "$a4" 2>/dev/null || printf '%s' "$a4")
       fi
       clear_stats; fetch_stats >/dev/null 2>&1
       save_state; set_msg "keystore account '$n' active" ok
@@ -596,10 +633,19 @@ screen_wallet() {
       clear_screen
       printf '%s  NEW BURNER KEY%s\n\n' "$C_B$C_W" "$C_RST"
       printf '  %sburner only - send testnet MON here, do not reuse for value%s\n\n' "$C_Y" "$C_RST"
-      local kv
+      local kv baddr bkey
       kv=$(cast wallet new 2>&1)
-      printf '%s\n\n' "$kv"
-      printf '  import it safely with: cast wallet import burner --interactive\n'
+      baddr=$(printf '%s' "$kv" | sed -n 's/^Address:[[:space:]]*//p' | head -1)
+      bkey=$(printf '%s' "$kv" | sed -n 's/^Private key:[[:space:]]*//p' | head -1)
+      if [ -z "$baddr" ]; then
+        printf '%s  could not create a key%s\n\n%s\n' "$C_R" "$C_RST" "$kv"
+        pause_enter; return
+      fi
+      printf '  address      %s%s%s\n' "$C_W$C_B" "$baddr" "$C_RST"
+      printf '  private key  %s%s%s\n\n' "$C_Y" "$bkey" "$C_RST"
+      printf '  print this once, then forget it. load it with:\n'
+      printf '    %scast wallet import burner --interactive%s\n' "$C_DIM" "$C_RST"
+      printf '  or in this tool: w -> 2 (memory only)\n'
       pause_enter
       ;;
     5)
@@ -672,7 +718,8 @@ screen_receipt() {
   case "$raw_st" in 0x1) st="success" ;; 0x0) st="failed (reverted)" ;; *) st="${raw_st}" ;; esac
   blk=$(cast to-dec "$raw_blk" 2>/dev/null || printf '%s' "$raw_blk")
   gasused=$(cast to-dec "$raw_gas" 2>/dev/null || printf '%s' "$raw_gas")
-  val=$(cast from-wei "$raw_val" ether 2>/dev/null || printf '%s' "$raw_val")
+  val_wei=$(cast to-dec "$raw_val" 2>/dev/null)
+  if [ -n "$val_wei" ]; then val="$(fmt_mon "$val_wei") MON"; else val="$raw_val"; fi
 
   printf '%s  TRANSACTION%s\n\n' "$C_B$C_W" "$C_RST"
   printf '  hash    %s\n' "$h"
@@ -680,7 +727,7 @@ screen_receipt() {
   printf '  block   %s\n' "$(commify "$blk")"
   printf '  from    %s\n' "$(printf '%s' "$js" | jq -r '.from // "?"' 2>/dev/null)"
   printf '  to      %s\n' "$(printf '%s' "$js" | jq -r '.to // "(contract creation)"' 2>/dev/null)"
-  printf '  value   %s MON\n' "$val"
+  printf '  value   %s\n' "$val"
   printf '  gasUsed %s\n' "$(commify "$gasused")"
   printf '\n  %s%s/tx/%s%s\n' "$C_C" "$EXPLORER" "$h" "$C_RST"
   pause_enter
@@ -704,7 +751,8 @@ ${C_B}  Signing${C_RST}
                   \`ps\` for that user while the transaction is signed.
     keystore      ~/.foundry/keystores/<name>, encrypted at rest:
                       cast wallet import dev --interactive
-                  then pick option 3 in the wallet screen.
+                  then pick option 3 in the wallet screen. The password is
+                  asked for when the transfer is confirmed.
 
   ${C_Y}Never paste a mainnet key that holds more than you can afford to lose.${C_RST}
   ${C_Y}Use a burner for testnet; move value to a keystore.${C_RST}
@@ -751,7 +799,11 @@ run_action() {
       local prev="$NET"
       toggle_network
       fetch_stats >/dev/null 2>&1
-      set_msg "network: $prev -> $NET" warn
+      if [ "$NET" = "mainnet" ]; then
+        set_msg "network: $prev -> MAINNET - this is real MON" warn
+      else
+        set_msg "network: $prev -> testnet" info
+      fi
       ;;
     wallet)   screen_wallet ;;
     erc20)    screen_erc20 ;;
@@ -807,7 +859,7 @@ once_frame() {
   printf 'balance   %s MON\n' "$(fmt_mon "$BAL_WEI")"
   printf 'block     %s\n' "$BLOCK_NO"
   printf 'nonce     %s\n' "$NONCE"
-  printf 'gas       %s wei\n' "$GAS_PRICE_WEI"
+  printf 'gas       %s gwei\n' "$(awk -v g="$GAS_PRICE_WEI" 'BEGIN{ printf "%.2f", g/1e9 }')"
   local r; r=$(idr_of "$(fmt_mon "$BAL_WEI" | tr -d ',')")
   [ -n "$r" ] && printf 'value_idr Rp %s\n' "$(commify "$r")"
   printf 'explorer  %s/address/%s\n' "$EXPLORER" "$W_ADDR"
@@ -818,8 +870,12 @@ main_loop() {
   trap 'tput cnorm 2>/dev/null; tput rmcup 2>/dev/null; exit 130' INT TERM
   trap 'tput cnorm 2>/dev/null; tput rmcup 2>/dev/null' EXIT
 
-  local n=${#MENU_ITEMS[@]}
+  local n=${#MENU_ITEMS[@]} now
   while :; do
+    now=$(date +%s)
+    if [ -n "$W_ADDR" ] && [ "$CHECKED_EPOCH" -gt 0 ] && [ $(( now - CHECKED_EPOCH )) -ge 30 ]; then
+      fetch_stats >/dev/null 2>&1
+    fi
     draw_main
     read_key
     case "$KEY" in
