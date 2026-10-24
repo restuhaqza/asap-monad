@@ -79,8 +79,9 @@ Verification is an **exact match** on both contracts (compiler `0.8.24`, optimiz
 | Contracts implemented | ✅ compile clean |
 | Tests | ✅ 7/7 passing |
 | Hotspot data pipeline | ✅ live NASA FIRMS, no API key |
+| Hotspots on-chain | ✅ 180 high-confidence detections |
 | Deployed to Monad testnet | ✅ both contracts, verified |
-| Pusher script writing hotspots on-chain | ⬜ next |
+| Pusher script writing hotspots on-chain | ✅ 180 hotspots, batch `0x89eb56…` |
 | Web app wired to the chain | ⬜ next |
 | Mainnet deploy + verification | ⬜ before 16:30 |
 | Contract addresses in README | ✅ |
