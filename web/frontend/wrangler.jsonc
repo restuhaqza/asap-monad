@@ -1,0 +1,25 @@
+{
+  // ASAP evidence worker + static SPA. No custom domain and no routes here on
+  // purpose — the domain swap is handled by the deploy step.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "asap-monad-spa",
+  "main": "worker.ts",
+  "compatibility_date": "2026-09-08",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/evidence/*"]
+  },
+  "r2_buckets": [
+    {
+      "binding": "EVIDENCE",
+      "bucket_name": "asap-evidence"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "routes": [
+    { "pattern": "asapmonad.web.id", "custom_domain": true }
+  ]
+}

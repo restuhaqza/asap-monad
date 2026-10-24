@@ -1,0 +1,19 @@
+# deps
+node_modules/
+
+# vite build output
+dist/
+
+# wrangler dry-run output
+.dryrun/
+
+# cloudflare state + secrets
+.wrangler/
+.dev.vars
+
+# os + logs
+.DS_Store
+*.log
+
+# typescript
+*.tsbuildinfo
