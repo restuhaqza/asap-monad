@@ -386,6 +386,17 @@ aside {
 }
 .row-main {
   min-width: 0;
+  flex: 1 1 auto;
+}
+/* The primary label is a place, not a coordinate: it has to truncate cleanly
+   when a town name is long, never wrap the row to three lines. */
+.row .place {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .row .coords {
   display: block;
@@ -434,9 +445,62 @@ aside {
   border-color: #3a3350;
 }
 .detail h3 {
-  margin: 0;
-  font-size: 15px;
+  margin: 2px 0 1px;
+  font-size: 16px;
+  line-height: 1.3;
   font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.detail-coords {
+  font-size: 10px;
+  color: var(--muted);
+}
+/* The one sentence a person actually reads. */
+.detail-lede {
+  margin: 10px 0;
+  font-size: 11.5px;
+  line-height: 1.62;
+  color: #d7d2e4;
+}
+.facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.fact {
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.fact span {
+  display: block;
+  font-size: 8.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+.fact b {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+}
+.fact em,
+.kv em {
+  display: block;
+  margin-top: 3px;
+  font-style: normal;
+  font-size: 9px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+.detail-source {
+  margin: 0 0 10px;
+  font-size: 9px;
+  letter-spacing: 0.02em;
+  color: #6f6884;
 }
 .detail-head {
   display: flex;
@@ -843,6 +907,18 @@ aside {
   }
   .row .coords {
     font-size: 12px;
+  }
+  .row .place {
+    font-size: 12.5px;
+  }
+  .detail-lede {
+    font-size: 12px;
+  }
+  .fact b {
+    font-size: 14px;
+  }
+  .detail-coords {
+    font-size: 10.5px;
   }
   .row .sub {
     font-size: 10.5px;

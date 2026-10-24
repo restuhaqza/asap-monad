@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  confidenceLabel,
   formatCoords,
   formatFrp,
   formatKilobytes,
@@ -10,6 +11,7 @@ import {
   formatTimeWIB,
   parseHoursInput,
   parseMonInput,
+  relativeTime,
   shortAddress,
 } from './format';
 
@@ -171,5 +173,37 @@ describe('formatTimeWIB', () => {
 
   it('is pure: the same timestamp always formats identically', () => {
     expect(formatTimeWIB(SAME_DAY)).toBe(formatTimeWIB(SAME_DAY));
+  });
+});
+
+describe('relativeTime', () => {
+  const NOW = 1_792_830_000_000; // fixed, so the assertions cannot flake
+
+  const ago = (seconds: number): string => relativeTime(NOW / 1000 - seconds, NOW);
+
+  it('collapses anything under a minute to "just now"', () => {
+    expect(ago(0)).toBe('just now');
+    expect(ago(59)).toBe('just now');
+  });
+
+  it('counts minutes, hours and days in words', () => {
+    expect(ago(60)).toBe('1 min ago');
+    expect(ago(45 * 60)).toBe('45 min ago');
+    expect(ago(3 * 3600)).toBe('3 hours ago');
+    expect(ago(23 * 3600)).toBe('23 hours ago');
+    expect(ago(26 * 3600)).toBe('1 day ago');
+    expect(ago(3 * 86_400)).toBe('3 days ago');
+  });
+
+  it('never counts backwards when the clock is skewed', () => {
+    expect(relativeTime(NOW / 1000 + 600, NOW)).toBe('just now');
+  });
+});
+
+describe('confidenceLabel', () => {
+  it('maps the on-chain enum to words', () => {
+    expect(confidenceLabel(0)).toBe('low confidence');
+    expect(confidenceLabel(1)).toBe('nominal confidence');
+    expect(confidenceLabel(2)).toBe('high confidence');
   });
 });

@@ -12,6 +12,7 @@ import * as L from 'leaflet';
 
 import { statusColor } from '../lib/bounties';
 import {
+  LABEL_MIN_ZOOM,
   MAP_CENTER,
   MAP_MAX_ZOOM,
   MAP_MIN_ZOOM,
@@ -20,7 +21,9 @@ import {
   TILES_BASE,
   TILES_REFERENCE,
 } from '../lib/config';
+import { relativeTime, formatFrp } from '../lib/format';
 import { markerFillOpacity, markerRadius } from '../lib/geo';
+import { formatPlaceRail, nearestPlace } from '../lib/places';
 import type { Hotspot } from '../lib/types';
 
 interface MapViewProps {
@@ -40,8 +43,16 @@ export interface MapViewHandle {
   recolor: () => void;
 }
 
-function tooltipHtml(id: number, frp: number): string {
-  return `<span style="font-family:'JetBrains Mono',monospace;font-size:10px">#${id} · ${frp.toFixed(0)} MW</span>`;
+/**
+ * Hover text for a marker. A dot on a map is anonymous; naming the nearest town
+ * is what turns a click into a decision.
+ */
+function tooltipHtml(lat: number, lon: number, frp: number, acqTime: number): string {
+  const place = nearestPlace(lat, lon);
+  return [
+    `<span style="font-family:'JetBrains Mono',monospace;font-size:10px">${formatPlaceRail(place)}</span>`,
+    `<span style="display:block;font-size:9px;opacity:.65;margin-top:2px">${formatFrp(frp)} · ${relativeTime(acqTime)}</span>`,
+  ].join('');
 }
 
 export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
@@ -83,7 +94,9 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
         fillOpacity: markerFillOpacity(status),
       }).addTo(map);
 
-      marker.bindTooltip(tooltipHtml(hotspot.id, hotspot.frp), { direction: 'top' });
+      marker.bindTooltip(tooltipHtml(hotspot.lat, hotspot.lon, hotspot.frp, hotspot.acqTime), {
+        direction: 'top',
+      });
       marker.on('click', () => onSelectRef.current(hotspot.id));
       markers.set(hotspot.id, marker);
     }
@@ -134,9 +147,14 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
       minZoom: MAP_MIN_ZOOM,
       attribution: TILES_ATTRIBUTION,
     }).addTo(map);
+    // Place names are reference only, and at the national view Esri draws city
+    // labels larger than this app's own type — they shout over the dots. So the
+    // label layer starts one zoom in, where it recedes, and the rail plus the
+    // panel already name every fire.
     L.tileLayer(TILES_REFERENCE, {
       maxZoom: MAP_MAX_ZOOM,
-      minZoom: MAP_MIN_ZOOM,
+      minZoom: LABEL_MIN_ZOOM,
+      opacity: 0.55,
     }).addTo(map);
 
     mapRef.current = map;

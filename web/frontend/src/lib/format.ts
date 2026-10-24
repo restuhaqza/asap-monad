@@ -52,6 +52,34 @@ export function formatTimeWIB(unixSeconds: number): string {
   });
 }
 
+/**
+ * "How long ago" in words: `just now`, `12 min ago`, `3 hours ago`, `2 days ago`.
+ *
+ * A timestamp answers "when" only for someone already holding a clock and a
+ * calendar. Fire data is hours old at best, so the age is the fact that
+ * matters — the exact time stays available next to it.
+ */
+export function relativeTime(unixSeconds: number, nowMs: number = Date.now()): string {
+  const seconds = Math.floor((nowMs - unixSeconds * 1000) / 1000);
+  if (seconds < 60) return 'just now';
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} min ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+
+  const days = Math.floor(hours / 24);
+  return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+}
+
+/** On-chain confidence enum (0 low · 1 nominal · 2 high) in words. */
+export function confidenceLabel(level: number): string {
+  if (level >= 2) return 'high confidence';
+  if (level === 1) return 'nominal confidence';
+  return 'low confidence';
+}
+
 /** Kilobyte label for the upload progress line: `143 KB`. */
 export function formatKilobytes(bytes: number): string {
   return `${(bytes / 1024).toFixed(0)} KB`;

@@ -1,4 +1,12 @@
-/** Detail panel for the selected hotspot: on-chain facts + the one available action. */
+/**
+ * Detail panel for the selected hotspot.
+ *
+ * Written for a person standing in a village, not for someone reading a block
+ * explorer: the title is the nearest town, the first line says what this fire
+ * means and what would answer it, and the raw chain facts sit underneath for
+ * whoever wants them. `-2.1234, 113.5678` is still on screen — it is just no
+ * longer the first thing you are told.
+ */
 
 import {
   displayStatusLabel,
@@ -10,9 +18,20 @@ import {
 } from '../lib/bounties';
 import { BOUNTY, EXPLORER, REGISTRY } from '../lib/config';
 import { canAfford } from '../lib/balance';
-import { formatCoords, formatFrp, formatMon, formatMonOrDash, formatTimeWIB, shortAddress } from '../lib/format';
+import {
+  confidenceLabel,
+  formatCoords,
+  formatFrp,
+  formatMon,
+  formatMonOrDash,
+  formatTimeWIB,
+  relativeTime,
+  shortAddress,
+} from '../lib/format';
+import { formatPlaceTitle, nearestPlace } from '../lib/places';
 import { useRequiredBond } from '../hooks/useRequiredBond';
-import { useClaim } from '../hooks/useClaim';import type { Bounty, Hotspot } from '../lib/types';
+import { useClaim } from '../hooks/useClaim';
+import type { Bounty, Hotspot } from '../lib/types';
 import type { SettlementReceipt } from '../lib/receipts';
 import { EvidencePicker } from './EvidencePicker';
 import { OpenBountyForm } from './OpenBountyForm';
@@ -27,6 +46,10 @@ interface DetailPanelProps {
   balanceWei?: bigint | null;
   /** Cached settlement for this bounty, when this browser saw the payout land. */
   receipt?: SettlementReceipt | null;
+  /** How many loaded fires this one outranks, 0–100. Hidden when unknown. */
+  hotterThanPct?: number | null;
+  /** How many fires are loaded, for the "out of N" half of that sentence. */
+  loadedCount?: number;
   onOpenBounty: (hotspotId: number, ttlSeconds: number, amountWei: bigint) => void;
   onClaim: (
     bountyId: number,
@@ -41,6 +64,23 @@ interface DetailPanelProps {
   onClose?: () => void;
 }
 
+/** One sentence, in plain English, per lifecycle state. */
+function ledeFor(status: number, pool: bigint, acqTime: number): string {
+  const when = relativeTime(acqTime);
+  switch (status) {
+    case STATUS_OPEN:
+      return `${formatMon(pool)} MON is waiting for the first responder who can prove they got there — a photo, a GPS fix, and a bond that comes back if a verifier approves it.`;
+    case STATUS_CLAIMED:
+      return 'Someone has filed proof. Two verifiers have to approve it before any money moves.';
+    case STATUS_VERIFIED:
+      return 'Answered. Someone proved they reached this spot, and the payout is already on-chain.';
+    case NO_BOUNTY:
+      return `A satellite picked this up ${when}. Nobody has put money behind it yet — opening a bounty is what makes one person responsible for answering it.`;
+    default:
+      return `Nobody answered this fire before the deadline. The backer was refunded, and it stays on the map as a fire nobody answered.`;
+  }
+}
+
 export function DetailPanel({
   hotspot,
   bounty,
@@ -48,6 +88,8 @@ export function DetailPanel({
   account,
   balanceWei = null,
   receipt = null,
+  hotterThanPct = null,
+  loadedCount = 0,
   onOpenBounty,
   onClaim,
   onAttest,
@@ -58,6 +100,7 @@ export function DetailPanel({
   const { bond, ready: bondReady } = useRequiredBond(bounty?.bountyId ?? null);
   const claim = useClaim(bounty && status === STATUS_VERIFIED ? bounty.activeClaim : null);
   const pool = bounty?.pool ?? 0n;
+  const place = nearestPlace(hotspot.lat, hotspot.lon);
   const connectedHint = account ? null : (
     <div className="hint">Connect a wallet on Monad Testnet to fund, claim or attest.</div>
   );
@@ -73,40 +116,60 @@ export function DetailPanel({
       <div className="detail-head">
         <div>
           <div className="muted detail-eyebrow">
-            Hotspot <span className="mono">#{hotspot.id}</span>
+            Hotspot <span className="mono">#{hotspot.id}</span> · {place.province}
           </div>
-          <h3 className="mono">{formatCoords(hotspot.lat, hotspot.lon, 4)}</h3>
+          <h3>{formatPlaceTitle(place)}</h3>
+          <div className="detail-coords mono">{formatCoords(hotspot.lat, hotspot.lon, 4)}</div>
         </div>
         <span className="pill" style={{ background: `${color}22`, color }} id="d-status">
           {displayStatusLabel(status)}
         </span>
       </div>
 
-      <div className="kv">
-        <div>
-          <span>Fire radiative power</span>
+      <p className="detail-lede">{ledeFor(status, pool, hotspot.acqTime)}</p>
+
+      <div className="facts">
+        <div className="fact">
+          <span>Heat</span>
           <b className="mono">{formatFrp(hotspot.frp)}</b>
+          <em>
+            {hotterThanPct === null
+              ? 'satellite heat detection'
+              : `stronger than ${hotterThanPct}% of the ${loadedCount} fires here`}
+          </em>
         </div>
-        <div>
-          <span>Detected</span>
-          <b className="mono">{formatTimeWIB(hotspot.acqTime)}</b>
+        <div className="fact">
+          <span>Seen</span>
+          <b>{relativeTime(hotspot.acqTime)}</b>
+          <em>{formatTimeWIB(hotspot.acqTime)} WIB</em>
         </div>
+      </div>
+
+      <div className="kv">
         <div>
           <span>Bounty pool</span>
           <b className="mono">{formatMonOrDash(pool)}</b>
+          <em>{pool > 0n ? 'paid to whoever proves it' : 'nobody has funded this fire yet'}</em>
         </div>
         <div>
           <span>Bond required</span>
           <b className="mono">{bounty && bondReady ? `${formatMon(bond)} MON` : '—'}</b>
+          <em>back if approved · lost if false</em>
         </div>
       </div>
 
+      <div className="detail-source">
+        NASA FIRMS · VIIRS SNPP · {confidenceLabel(hotspot.confidence)}
+      </div>
+
       {account ? (
-        <div className={`balance-row${bounty && status === STATUS_OPEN && !canAfford(balanceWei, bond) ? ' warn' : ''}`}>
-          <span>Wallet balance</span>
+        <div
+          className={`balance-row${bounty && status === STATUS_OPEN && !canAfford(balanceWei, bond) ? ' warn' : ''}`}
+        >
+          <span>Your wallet</span>
           <b className="mono">{balanceWei === null ? '—' : `${formatMon(balanceWei)} MON`}</b>
           {bounty && status === STATUS_OPEN && !canAfford(balanceWei, bond) ? (
-            <em>bond needs {formatMon(bond)} MON</em>
+            <em>the bond needs {formatMon(bond)} MON</em>
           ) : null}
         </div>
       ) : null}
@@ -115,9 +178,7 @@ export function DetailPanel({
         {!bounty && (
           <OpenBountyForm
             disabled={!account}
-            onSubmit={(ttlSeconds, amountWei) =>
-              onOpenBounty(hotspot.id, ttlSeconds, amountWei)
-            }
+            onSubmit={(ttlSeconds, amountWei) => onOpenBounty(hotspot.id, ttlSeconds, amountWei)}
           />
         )}
 
@@ -163,8 +224,8 @@ export function DetailPanel({
                   </button>
                 </div>
                 <div className="hint">
-                  Two approvals settle the claim and pay the responder. Two rejections slash the bond
-                  and reopen the bounty.
+                  Two approvals pay the responder. Two rejections slash the bond and reopen the
+                  bounty to everyone else.
                 </div>
               </>
             ) : (
@@ -177,17 +238,7 @@ export function DetailPanel({
         )}
 
         {bounty && status === STATUS_VERIFIED && (
-          <>
-            <div className="hint">Claim verified. The responder has been paid on-chain.</div>
-            <ReceiptCard hotspot={hotspot} claim={claim} receipt={receipt} />
-          </>
-        )}
-
-        {bounty && status !== STATUS_OPEN && status !== STATUS_CLAIMED && status !== STATUS_VERIFIED && (
-          <div className="hint">
-            Bounty expired — the backer was refunded, and the row stays public as a fire nobody
-            answered.
-          </div>
+          <ReceiptCard hotspot={hotspot} claim={claim} receipt={receipt} />
         )}
 
         {connectedHint}
@@ -200,7 +251,7 @@ export function DetailPanel({
             <a href={`${EXPLORER}/address/${BOUNTY}`} target="_blank" rel="noreferrer">
               #{bounty.bountyId}
             </a>{' '}
-            · backer {shortAddress(bounty.backer)} · deadline {formatTimeWIB(bounty.deadline)}
+            · funded by {shortAddress(bounty.backer)} · deadline {formatTimeWIB(bounty.deadline)}
           </>
         ) : (
           <>

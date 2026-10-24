@@ -228,7 +228,7 @@ describe('DetailPanel — status Verified', () => {
 
     expect(screen.getByText('Verified')).toBeInTheDocument();
     expect(
-      screen.getByText('Claim verified. The responder has been paid on-chain.'),
+      screen.getByText(/Answered\. Someone proved they reached this spot, and the payout/),
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^approve/i })).not.toBeInTheDocument();
   });
@@ -239,7 +239,9 @@ describe('DetailPanel — status Expired', () => {
     setup({ bountyValue: bounty({ status: STATUS_EXPIRED }) });
 
     expect(screen.getByText('no responder')).toBeInTheDocument();
-    expect(screen.getByText(/Bounty expired — the backer was refunded/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Nobody answered this fire before the deadline\./),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^claim/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^approve/i })).not.toBeInTheDocument();
   });
@@ -254,6 +256,54 @@ describe('DetailPanel — header facts', () => {
     expect(screen.getByText('42 MW')).toBeInTheDocument();
     expect(screen.getByText('8.000 MON')).toBeInTheDocument();
     expect(screen.getByText(/#11/)).toBeInTheDocument();
+  });
+
+  it('leads with the nearest town, not with a coordinate pair', () => {
+    setup({ bountyValue: bounty({ status: STATUS_OPEN }) });
+
+    // -2.1234, 113.5678 is roughly 40 km west of Palangka Raya.
+    expect(screen.getByRole('heading', { level: 3 })).toHaveTextContent(/Palangka Raya/);
+    expect(screen.getByText(/Central Kalimantan/)).toBeInTheDocument();
+    expect(screen.getByText(/^≈\d+ km [NSEW]{1,2} of Palangka Raya$/)).toBeInTheDocument();
+  });
+
+  it('says what the fire means and what would answer it', () => {
+    setup({ bountyValue: bounty({ status: STATUS_OPEN }) });
+
+    expect(
+      screen.getByText(/8\.000 MON is waiting for the first responder who can prove/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/back if approved · lost if false/)).toBeInTheDocument();
+  });
+
+  it('explains an unfunded fire without jargon', () => {
+    setup({ bountyValue: null });
+
+    expect(
+      screen.getByText(/Nobody has put money behind it yet — opening a bounty is what makes/),
+    ).toBeInTheDocument();
+    expect(screen.getByText('nobody has funded this fire yet')).toBeInTheDocument();
+  });
+
+  it('ranks the fire against the ones already loaded, when given a rank', () => {
+    useRequiredBondMock.mockReturnValue({ bond: BOND, ready: true });
+    render(
+      <DetailPanel
+        hotspot={hotspot}
+        bounty={bounty({ status: STATUS_OPEN })}
+        isVerifier={false}
+        account={ACCOUNT}
+        hotterThanPct={78}
+        loadedCount={80}
+        onOpenBounty={vi.fn()}
+        onClaim={vi.fn()}
+        onAttest={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByText('stronger than 78% of the 80 fires here'),
+    ).toBeInTheDocument();
   });
 
   it('links the hotspot record when there is no bounty', () => {

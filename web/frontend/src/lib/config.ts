@@ -80,4 +80,11 @@ export const TILES_BASE =
   'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}';
 export const TILES_REFERENCE =
   'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}';
+/**
+ * The label layer joins at zoom 6. At the national view its city names render
+ * bigger than our own headings, so they are withheld until the map is close
+ * enough for them to read as a backdrop.
+ */
+export const LABEL_MIN_ZOOM = 6;
+
 export const TILES_ATTRIBUTION = 'Tiles © Esri · hotspots © NASA FIRMS';

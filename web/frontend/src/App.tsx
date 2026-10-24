@@ -44,6 +44,17 @@ export default function App() {
   const selectedHotspot = selected === null ? null : (data.byId.get(selected) ?? null);
   const selectedBounty = selected === null ? null : (data.byHotspot.get(selected) ?? null);
 
+  /**
+   * Where this fire sits in the pile. "Stronger than 78% of the 80 fires here"
+   * is a sentence; "42 MW" is a number nobody can rank.
+   */
+  const hotterThanPct = useMemo(() => {
+    if (selected === null || sorted.length < 5) return null;
+    const index = sorted.findIndex((hotspot) => hotspot.id === selected);
+    if (index < 0) return null;
+    return Math.round(((sorted.length - 1 - index) / (sorted.length - 1)) * 100);
+  }, [sorted, selected]);
+
   const actions = useBountyActions({
     account: wallet.account,
     walletClient: wallet.walletClient,
@@ -128,6 +139,8 @@ export default function App() {
                 isVerifier={wallet.isVerifier}
                 account={wallet.account}
                 balanceWei={wallet.balance}
+                hotterThanPct={hotterThanPct}
+                loadedCount={sorted.length}
                 onOpenBounty={(hotspotId, ttlSeconds, amountWei) => {
                   void actions.openBounty(hotspotId, ttlSeconds, amountWei);
                 }}
