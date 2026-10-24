@@ -130,6 +130,18 @@
 
 
   /* evidence upload */
+  .ev-row{display:flex;gap:8px;margin-top:9px}
+  .ev-btn{
+    flex:1;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;
+    background:var(--ink);border:1px solid var(--line);border-radius:9px;color:var(--text);
+    padding:9px 10px;font-size:11px;font-weight:600;font-family:inherit;transition:.15s;
+  }
+  .ev-btn:hover{border-color:var(--monad);background:#191523}
+  .ev-ico{color:var(--monad);font-size:13px;line-height:1}
+  /* kept in the layout on purpose: some browsers refuse to open a picker for display:none inputs */
+  .sr-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;margin:-1px;border:0;padding:0;overflow:hidden}
+  .ev-preview{width:100%;max-height:150px;object-fit:cover;border-radius:9px;margin-top:8px;border:1px solid var(--line)}
+
   .ev-drop{
     display:flex;align-items:center;gap:11px;margin-top:8px;padding:11px 12px;cursor:pointer;
     border:1px dashed var(--line);border-radius:9px;background:var(--ink);transition:.15s;

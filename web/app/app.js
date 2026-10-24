@@ -340,6 +340,9 @@ async function openDetail(id) {
   pill.style.color = STATUS[st].color;
 
   const c = $('controls');
+  const renderKey = `${id}:${st}:${bid}:${account ? 1 : 0}`;
+  if (c.dataset.key === renderKey) return;
+  c.dataset.key = renderKey;
   const cta = account
     ? ''
     : `<div class="hint">Connect a wallet on Monad Testnet to fund, claim or attest.</div>`;
@@ -359,41 +362,60 @@ async function openDetail(id) {
     ], parseEther($('f-amount').value || '0'));
   } else if (st === 1) {
     c.innerHTML = `
-      <input id="f-file" type="file" accept="image/*" capture="environment" hidden />
-      <label for="f-file" class="ev-drop" id="f-drop">
-        <span class="ev-ico">◉</span>
-        <span><b>Take or choose a photo</b><br><small>compressed to 1280px · sha256 · stored on R2</small></span>
-      </label>
+      <div class="ev-row">
+        <button type="button" class="ev-btn" id="f-pick"><span class="ev-ico">＋</span> Choose file</button>
+        <button type="button" class="ev-btn" id="f-cam"><span class="ev-ico">◉</span> Take photo</button>
+      </div>
+      <input id="f-file" type="file" accept="image/*" class="sr-input" />
+      <input id="f-cam-input" type="file" accept="image/*" capture="environment" class="sr-input" />
       <img id="f-preview" class="ev-preview" hidden alt="evidence preview" />
       <div class="hint" id="f-state">Evidence must be captured within 25 km of the hotspot and after the satellite pass.</div>
       <div class="field"><input id="f-cid" placeholder="or paste an IPFS CID / URL" /></div>
-      <div class="actions"><button class="btn btn-primary" id="f-claim" ${account ? '' : 'disabled'}>Claim · bond ${Number(formatEther(bond)).toFixed(3)} MON</button></div>
-      <div class="hint">Bond ≥ pool is slashed if two verifiers reject. Two approvals settle the payout.</div>
+      <div class="actions"><button class="btn btn-primary" id="f-claim" disabled>Claim · bond ${Number(formatEther(bond)).toFixed(3)} MON</button></div>
+      <div class="hint">Add evidence first — a photo or a URL. Bond ≥ pool is slashed if two verifiers reject.</div>
       ${cta}`;
 
     let evidenceRef = '';
-    const fileInput = $('f-file');
-    if (fileInput) {
-      fileInput.onchange = async () => {
-        const file = fileInput.files?.[0];
-        if (!file) return;
-        $('f-state').textContent = 'Compressing…';
-        try {
-          const blob = await compress(file);
-          $('f-preview').src = URL.createObjectURL(blob);
-          $('f-preview').hidden = false;
-          $('f-state').textContent = `Uploading ${(blob.size / 1024).toFixed(0)} KB…`;
-          const res = await uploadEvidence(blob);
-          evidenceRef = new URL(res.url, location.origin).href;
-          $('f-state').innerHTML = `Stored · <span class="mono">sha256 ${res.sha256.slice(0, 12)}…</span>`;
-          $('f-drop').classList.add('done');
-        } catch (err) {
-          evidenceRef = '';
-          $('f-state').textContent = 'Upload failed: ' + (err.message || err) + ' — you can paste a URL instead.';
-        }
+    const claimBtn = $('f-claim');
+    const gate = () => {
+      const hasEvidence = Boolean(evidenceRef) || Boolean($('f-cid').value.trim());
+      claimBtn.disabled = !account || !hasEvidence;
+    };
+    $('f-cid').addEventListener('input', gate);
+
+    const handleFile = async (file) => {
+      if (!file) return;
+      $('f-state').textContent = 'Compressing…';
+      try {
+        const blob = await compress(file);
+        $('f-preview').src = URL.createObjectURL(blob);
+        $('f-preview').hidden = false;
+        $('f-state').textContent = `Uploading ${(blob.size / 1024).toFixed(0)} KB…`;
+        const res = await uploadEvidence(blob);
+        evidenceRef = new URL(res.url, location.origin).href;
+        $('f-state').innerHTML = `Stored · <span class="mono">sha256 ${res.sha256.slice(0, 12)}…</span>`;
+        gate();
+      } catch (err) {
+        evidenceRef = '';
+        $('f-state').textContent = 'Upload failed: ' + (err.message || err) + ' — paste a URL instead.';
+        gate();
+      }
+    };
+
+    // programmatic clicks: a display:none input is refused by some browsers,
+    // so the inputs stay in the layout but visually hidden
+    $('f-pick').onclick = () => $('f-file').click();
+    $('f-cam').onclick = () => $('f-cam-input').click();
+    for (const el of [$('f-file'), $('f-cam-input')]) {
+      el.onchange = () => {
+        const file = el.files?.[0];
+        el.value = '';
+        handleFile(file);
       };
     }
-    const btn = $('f-claim');
+
+    gate();
+    const btn = claimBtn;
     if (btn) btn.onclick = () => tx('claim', [
       BigInt(bid), evidenceRef || $('f-cid').value.trim() || 'ipfs://unset', h.latE6, h.lonE6, BigInt(Math.floor(Date.now() / 1000)),
     ], bond);
