@@ -51,6 +51,24 @@ export async function ensureChain(provider: InjectedProvider): Promise<void> {
   }
 }
 
+/**
+ * Addresses the user has already authorised. `eth_accounts` never opens a
+ * prompt — that is the whole difference from `eth_requestAccounts`.
+ */
+export async function silentAccounts(
+  provider: InjectedProvider,
+): Promise<`0x${string}` | null> {
+  try {
+    const accounts = await provider.request({ method: 'eth_accounts' });
+    const address = Array.isArray(accounts) ? accounts[0] : undefined;
+    return typeof address === 'string' && address.startsWith('0x')
+      ? (address as `0x${string}`)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 /** First address from `eth_requestAccounts`. Throws when the user rejects. */
 export async function requestAccounts(provider: InjectedProvider): Promise<`0x${string}`> {
   const accounts = await provider.request({ method: 'eth_requestAccounts' });

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { WalletClient } from 'viem';
 
 import { createInjectedWallet, readBalance, readIsVerifier } from '../lib/chain';
-import { ensureChain, getInjectedProvider, requestAccounts } from '../lib/eip1193';
+import { ensureChain, getInjectedProvider, requestAccounts, silentAccounts } from '../lib/eip1193';
 
 export interface WalletState {
   account: `0x${string}` | null;
@@ -25,6 +25,18 @@ export function useWallet(): WalletState {
   const [balance, setBalance] = useState<bigint | null>(null);
   const [connecting, setConnecting] = useState(false);
 
+  /** Adopt an address the provider already gave us: state, client, roles, balance. */
+  const adopt = useCallback(async (address: `0x${string}`, provider: NonNullable<ReturnType<typeof getInjectedProvider>>) => {
+    setAccount(address);
+    setWalletClient(createInjectedWallet(address, provider));
+    const [verifierFlag, balanceValue] = await Promise.all([
+      readIsVerifier(address).catch(() => false),
+      readBalance(address).catch(() => null),
+    ]);
+    setIsVerifier(verifierFlag);
+    if (balanceValue !== null) setBalance(balanceValue);
+  }, []);
+
   const refreshBalance = useCallback(async () => {
     if (!account) return;
     const value = await readBalance(account).catch(() => null);
@@ -40,14 +52,28 @@ export function useWallet(): WalletState {
       const address = await requestAccounts(provider);
       await ensureChain(provider);
 
-      setAccount(address);
-      setWalletClient(createInjectedWallet(address, provider));
-      setIsVerifier(await readIsVerifier(address).catch(() => false));
-      setBalance(await readBalance(address).catch(() => null));
+      await adopt(address, provider);
     } finally {
       setConnecting(false);
     }
   }, []);
+
+  // Silent reconnect: a wallet that already authorised this site hands the
+  // address over without a prompt, so the balance is on screen at first paint.
+  useEffect(() => {
+    const provider = getInjectedProvider();
+    if (!provider) return;
+
+    let alive = true;
+    void silentAccounts(provider).then((address) => {
+      if (!alive || !address) return;
+      void adopt(address, provider);
+    });
+
+    return () => {
+      alive = false;
+    };
+  }, [adopt]);
 
   // Follow the wallet when the user switches account or disconnects.
   useEffect(() => {
@@ -69,14 +95,7 @@ export function useWallet(): WalletState {
         return;
       }
 
-      setAccount(next);
-      setWalletClient(createInjectedWallet(next, provider));
-      void readIsVerifier(next)
-        .then(setIsVerifier)
-        .catch(() => setIsVerifier(false));
-      void readBalance(next)
-        .then(setBalance)
-        .catch(() => setBalance(null));
+      void adopt(next, provider);
     };
 
     provider.on('accountsChanged', handler);
