@@ -237,7 +237,7 @@
 
   <header class="hero">
     <div class="hero-bg" aria-hidden="true"></div>
-    <div class="eyebrow"><span class="live"></span> Live on Monad testnet · chain 10143</div>
+    <div class="eyebrow"><span class="live"></span> %VITE_CHAIN_LINE%</div>
 
     <h2 class="hero-title">Satellites see the <em>smoke</em>. Nobody pays the person who reaches it.</h2>
 
@@ -404,7 +404,7 @@ attest(claimId, true)
       <div class="limit"><b>Satellite data lags.</b><p>NRT is hours behind reality, and we never claim a fire is burning right now — only that it was detected in the last 24 hours.</p></div>
       <div class="limit"><b>Trusted quorum.</b><p>Verification is two whitelisted addresses today. v2 is stake-weighted verifiers with an appeal window.</p></div>
       <div class="limit"><b>Bond excludes the poorest.</b><p>A 100% bond makes fraud unprofitable, and also means a volunteer with no capital cannot respond. A cooperative bond pool is the fix.</p></div>
-      <div class="limit"><b>Testnet only.</b><p>Contracts run on Monad testnet. No real money has moved, and none of this is an offer of insurance.</p></div>
+      <div class="limit"><b>%VITE_RISK_TITLE%</b><p>%VITE_RISK_BODY%</p></div>
     </div>
 
     <div class="next">
@@ -423,13 +423,13 @@ attest(claimId, true)
       <a href="/portal">Live app</a>
       <a href="/whitepaper">Whitepaper</a>
       <a href="https://github.com/restuhaqza/asap-monad" target="_blank" rel="noreferrer">GitHub</a>
-      <a href="https://testnet.monadscan.com" target="_blank" rel="noreferrer">Monadscan</a>
+      <a href="%VITE_EXPLORER_URL%" target="_blank" rel="noreferrer">Monadscan</a>
       <a href="https://github.com/restuhaqza/asap-monad#deployment" target="_blank" rel="noreferrer">Contract addresses</a>
     </div>
     <div class="contracts">
       HotspotRegistry · 0xe691172812761cd8c1efcdbeb89192b35cacb9e7<br>
       FireBounty · 0x6ec281aac8f6bec24ba84c56800879b66c13097a<br>
-      Monad testnet · chain 10143 · source-verified
+      %VITE_FOOTER_CHAIN%
     </div>
     <p style="margin:18px 0 0;font-size:10.5px;color:#5b556b">
       Built in one day at Monad Blitz Jogja Vol. 2, 24 October 2026. Hotspot data: NASA FIRMS, public domain.

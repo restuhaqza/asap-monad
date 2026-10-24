@@ -63,8 +63,8 @@ never read a testnet address because a query string or a hostname said so.
 
 | Host | Build | Chain |
 |---|---|---|
-| **https://testnet.asapmonad.web.id** | `build:testnet` | `10143` |
-| **https://asapmonad.web.id** (root) | `build:mainnet` | `143` — pending funding, currently serving the testnet bundle |
+| **https://asapmonad.web.id** (root) | `build:mainnet` | `143` — mainnet |
+| **https://testnet.asapmonad.web.id** | `build:testnet` | `10143` — testnet |
 
 App at `/portal` on both hosts, landing at `/`. `scripts/deploy-mainnet.sh`
 does the whole mainnet run — deploy, publish hotspots, write `.env.mainnet`,
@@ -82,8 +82,8 @@ python3 scripts/fetch-hotspots.py --limit 200
 
 | Host | Bundle | State |
 |---|---|---|
-| [testnet.asapmonad.web.id](https://testnet.asapmonad.web.id/portal) | chain `10143` | **live** — 80 hotspots, 4 bounties |
-| [asapmonad.web.id](https://asapmonad.web.id/portal) | chain `143` | waiting on mainnet MON; serves the testnet bundle until then |
+| [asapmonad.web.id](https://asapmonad.web.id/portal) | chain `143` | **live** — 191 hotspots on Monad mainnet |
+| [testnet.asapmonad.web.id](https://testnet.asapmonad.web.id/portal) | chain `10143` | **live** — 180 hotspots, 4 bounties, one settled payout |
 
 ### Monad Testnet — chain `10143` · [explorer](https://testnet.monadscan.com)
 
@@ -93,6 +93,19 @@ python3 scripts/fetch-hotspots.py --limit 200
 | `FireBounty` | [`0x6ec281aac8f6bec24ba84c56800879b66c13097a`](https://testnet.monadscan.com/address/0x6ec281aac8f6bec24ba84c56800879b66c13097a) | verified · [Sourcify](https://repo.sourcify.dev/10143/0x6ec281aac8f6bec24ba84c56800879b66c13097a) |
 
 Verification is an **exact match** on both contracts (compiler `0.8.24`, optimizer on, 200 runs, `shanghai`). `FireBounty` was deployed with the registry address as its constructor argument. Oracle deployer: `0x9EB20B1420077de8b7e9572b9729b94090a5B8C8`, which is also a whitelisted verifier so the flow can be demonstrated end to end.
+
+Deploy transactions: [`0x60e378aa…c6ace3`](https://testnet.monadscan.com/tx/0x60e378aa29022180b28349a2e67c36b035050b945e0ed60362ad04adf0c6ace3) · [`0xf24c8046…af6b0`](https://testnet.monadscan.com/tx/0xf24c804655cb4859cc4e835dc19b68aa9652489ceee860856921ddc4a5afc6b0)
+
+### Monad Mainnet — chain `143` · [explorer](https://monadscan.com)
+
+| Contract | Address | Source |
+|---|---|---|
+| `HotspotRegistry` | [`0xe691172812761cd8c1efcdbeb89192b35cacb9e7`](https://monadscan.com/address/0xe691172812761cd8c1efcdbeb89192b35cacb9e7) | verified · [Sourcify](https://repo.sourcify.dev/143/0xe691172812761cd8c1efcdbeb89192b35cacb9e7) |
+| `FireBounty` | [`0x6ec281aac8f6bec24ba84c56800879b66c13097a`](https://monadscan.com/address/0x6ec281aac8f6bec24ba84c56800879b66c13097a) | verified · [Sourcify](https://repo.sourcify.dev/143/0x6ec281aac8f6bec24ba84c56800879b66c13097a) |
+
+`exact_match` on both, same compiler settings. **The addresses are identical to testnet, and that is not a typo**: the deployer's nonce was 0 on both chains, so `CREATE` produced the same deterministic address. 191 FIRMS hotspots are anchored on mainnet the same way as on testnet, from one `commitBatch` ([`0x10fe39ad…3d4ede`](https://monadscan.com/tx/0x10fe39adf100ea2195c06be10c0c26fd2588ebc989e0b663d0b8d1a3af3d4ede)) and one `publish` of 191 rows ([`0x1d8e95f2…b65489`](https://monadscan.com/tx/0x1d8e95f2b604e901e5abd005abb3f02eaee11777c3048e2e8e218cb886b65489)).
+
+Mainnet deploy transactions: [`0x60e378aa…c6ace3`](https://monadscan.com/tx/0x60e378aa29022180b28349a2e67c36b035050b945e0ed60362ad04adf0c6ace3) · [`0xf24c8046…af6b0`](https://monadscan.com/tx/0xf24c804655cb4859cc4e835dc19b68aa9652489ceee860856921ddc4a5afc6b0)
 
 ## How it works
 
@@ -120,15 +133,15 @@ Verification is an **exact match** on both contracts (compiler `0.8.24`, optimiz
 | Contracts implemented | ✅ compile clean |
 | Tests | ✅ 7/7 passing |
 | Hotspot data pipeline | ✅ live NASA FIRMS, no API key |
-| Hotspots on-chain | ✅ 180 high-confidence detections |
+| Hotspots on-chain | ✅ 180 on testnet · 191 on mainnet, each anchored to the FIRMS CSV hash |
 | End-to-end settlement | ✅ bounty #1 verified, responder paid |
-| Deployed to Monad testnet | ✅ both contracts, verified |
+| Deployed to Monad testnet | ✅ both contracts, exact-match verified |
 | Pusher script writing hotspots on-chain | ✅ 180 hotspots, batch `0x89eb56…` |
-| Web app wired to the chain | ✅ [asapmonad.web.id/portal](https://asapmonad.web.id/portal) — React 19 + Vite |
+| Web app wired to the chain | ✅ [mainnet](https://asapmonad.web.id/portal) and [testnet](https://testnet.asapmonad.web.id/portal) — React 19 + Vite, same source, chain chosen at build time |
 | Web app tests | ✅ 219/219 Vitest (lib, hooks, evidence, stats, receipt, both interaction components) |
 | `"no responder"` counter | ✅ header counter read from bounty status 4 — **0 today**, no bounty has expired yet; an expiry on bounty #4 becomes callable at 18:22 WIB |
 | Payment receipt on verified bounties | ✅ responder, distance, evidence, approvals and verifier reward on every verified bounty; the exact payout appears when this browser waited for the settlement tx, bounties settled earlier say "settled before this build" instead of guessing |
-| Mainnet deploy + verification | ⬜ before 16:30 |
+| Deployed to Monad mainnet | ✅ both contracts on chain `143`, exact-match verified on Sourcify |
 | Contract addresses in README | ✅ |
 | Public live URL | ✅ custom domain on Cloudflare |
 | 30 s demo video | ✅ `docs/asap-demo-30s.mp4` |
