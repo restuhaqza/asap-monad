@@ -182,7 +182,7 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
       <div className="banner">
         <span className="sw" style={{ background: 'var(--dead)' }} />
         <span>
-          Live hotspots · <span className="mono">{shown}</span> of{' '}
+          Hotspots on-chain · <span className="mono">{shown}</span> of{' '}
           <span className="mono">{total}</span> on {CHAIN.name}
         </span>
       </div>

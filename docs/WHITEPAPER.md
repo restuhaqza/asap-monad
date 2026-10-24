@@ -1,4 +1,4 @@
-# ASAP — A Fire Response Bounty Network on Monad
+# ASAP: a fire response bounty network on Monad
 
 **Satellites find the fire. Monad pays the person who gets there.**
 
@@ -22,17 +22,17 @@ Indonesia's fire detection layer already works. SiPongi ingests NASA Terra/Aqua,
 and publishes hotspot coordinates daily; on 12 October 2026 the national feed carried **17,108
 hotspots** and **26 provinces** were under haze. What does not work is the last mile: a hotspot is
 a coordinate, not an action. Someone has to physically reach that coordinate, and today that
-person has no budget, no proof of arrival, and no payment.
+person has no budget for the trip, no way to prove they made it, and nobody to invoice.
 
 ASAP is the missing layer between the satellite and the shovel. A hotspot opens an escrow bounty
 on-chain. A responder stakes a bond equal to the bounty, submits geotagged photographic evidence,
 and two independent verifiers settle the claim. The payout lands in a single block. If nobody
-credible arrives, the bounty **expires** — and that expiry is published as a permanent, verifiable
+credible arrives, the bounty **expires**, and that expiry is published as a permanent, verifiable
 record of a fire that had money on it and was left to burn.
 
 Two contracts, no token, native MON. The design goal is not to replace Manggala Agni, BPBD or the
-village brigades. It is to make the first hour of a fire financially worth somebody's time, and to
-make the absence of that response impossible to hide.
+village brigades. It is to make the first hour of a fire worth somebody's time and money, and to
+make the absence of a response impossible to hide.
 
 ---
 
@@ -69,10 +69,9 @@ action.
 
 ### 1.3 The design constraint that follows
 
-Because NRT satellite data lags reality by hours, any system that gates *action* on satellite
-confirmation is structurally late. ASAP therefore uses the satellite for exactly one job — **opening
-and scoping a bounty** — and pays for **arrival**, which is a fact the responder produces, not the
-satellite.
+NRT satellite data lags reality by hours, so any system that waits for satellite confirmation
+before acting is already late. ASAP uses the satellite for one job only, **opening and scoping a
+bounty**, and pays for **arrival**, a fact the responder produces rather than the satellite.
 
 ---
 
@@ -80,10 +79,10 @@ satellite.
 
 | ASAP is | ASAP is not |
 |---|---|
-| An escrow and settlement layer for physical fire response | A fire detection system — SiPongi and FIRMS already do that |
-| A public ledger of which fires were answered | A dispatch or command system — Manggala Agni keeps command |
+| An escrow and settlement layer for physical fire response | A fire detection system. SiPongi and FIRMS already do that |
+| A public ledger of which fires were answered | A dispatch or command system. Manggala Agni keeps command |
 | A way for exposure-holders to fund response in minutes | A token, a yield product, or a speculative asset |
-| A proof-of-arrival protocol with bonded claims | A certification authority — verifiers are a trusted quorum in v1 |
+| A proof-of-arrival protocol with bonded claims | A certification authority. Verifiers are a trusted quorum in v1 |
 
 Six deliberate exclusions, each of which removes a way for the system to fail:
 
@@ -144,9 +143,9 @@ flowchart TB
 
 **Why two contracts and not one.** Hotspot facts are shared by every bounty and must be verifiable
 independently of whoever opened a bounty; money logic changes and facts do not. Splitting them also
-lets a second consumer — carbon MRV, an insurer, a provincial dashboard — read the registry without
-touching escrowed funds. Every additional contract on the other hand is a place where the system can
-fail, which is why there are exactly two.
+lets a second consumer (carbon MRV, an insurer, a provincial dashboard) read the registry without
+touching escrowed funds. Every additional contract is also a place where the system can fail, which
+is why there are exactly two.
 
 **Trust boundaries.**
 
@@ -163,7 +162,7 @@ fail, which is why there are exactly two.
 
 ## 4. Mechanism design
 
-### 4.1 `HotspotRegistry` — appended facts with provenance
+### 4.1 `HotspotRegistry`: appended facts with provenance
 
 Satellite rows are facts. The registry's job is to make them *checkable* facts rather than a
 publisher's assertion.
@@ -181,7 +180,7 @@ struct Hotspot {
 ```
 
 Integers only, because Solidity has no floats. Coordinates are micro-degrees (`value × 1e6`), FRP is
-deci-megawatts — the largest detections in the live feed are ~320 MW and a `uint16` caps at
+deci-megawatts. The largest detections in the live feed are ~320 MW and a `uint16` caps at
 6,553.5 MW, so the field will not overflow on this planet.
 
 **Provenance protocol.**
@@ -200,7 +199,7 @@ Batch size is deliberate: ~200 rows per transaction. Each hotspot occupies two s
 (packed metadata plus `batchId`), so a 400-row transaction roughly doubles the gas and buys nothing
 but one fewer signature.
 
-### 4.2 `FireBounty` — escrow, bonds, quorum
+### 4.2 `FireBounty`: escrow, bonds, quorum
 
 A bounty is an independent escrow account with four participants: the **backer** who funds it, the
 **responder** who claims it, the **verifiers** who settle it, and the **deadline** that closes it.
@@ -246,7 +245,7 @@ flowchart LR
 ```
 
 `payout = pool + bond − (pool × verifierRewardBps / 10_000)`, so at the default 10 % reward a
-successful responder receives **1.9× the pool** — their own bond back plus 90 % of the bounty. The
+successful responder receives **1.9× the pool**: their own bond back plus 90 % of the bounty. The
 remaining 10 % pays the two verifiers, split equally. Verification is work, and unpaid verifiers do
 not verify.
 
@@ -284,7 +283,7 @@ The metric that follows is trivially definable and hard to game:
 unanswered rate = expired bounties / all bounties ever opened
 ```
 
-At the time of writing that denominator is 5 and the numerator is 0 — no bounty has been left to
+At the time of writing the denominator is 5 and the numerator is 0. No bounty has been left to
 expire yet, because the oldest deadline had not elapsed. The metric is honest about being
 uninformative at this sample size; it becomes the product at national scale.
 
@@ -296,7 +295,7 @@ uninformative at this sample size; it becomes the product at national scale.
 
 Let `p` be the probability a fraudulent claim is accepted, `pool` the bounty, `bond` the responder's
 stake, and `reward` the verifier cut (10 % of the pool at the default). A fake claim nets
-`pool − reward` when it succeeds — the bond comes back as part of the payout — and loses the whole
+`pool − reward` when it succeeds (the bond comes back as part of the payout) and loses the whole
 bond when it is rejected:
 
 ```
@@ -309,18 +308,18 @@ With `bond = pool` and `reward = 0.1 × pool`:
 EV(fake) = pool × (1.9p − 1)
 ```
 
-Fraud breaks even at `p = 1/1.9 ≈ 0.53`. In other words **the fake claim must succeed more than
-about 53 % of the time before lying pays** — and `p` is not one verifier being fooled, it is two
-independent whitelisted verifiers both being fooled, while they can see the coordinate, the distance
-from the hotspot, the capture delay after the satellite pass, and the photograph. At any plausible
-`p` the mechanism is a losing trade.
+Fraud breaks even at `p = 1/1.9 ≈ 0.53`. So **a fake claim has to succeed more than about 53 % of
+the time before lying pays**, and `p` is not one verifier being fooled. It is two independent
+whitelisted verifiers both being fooled, while they can see the coordinate, the distance from the
+hotspot, the capture delay after the satellite pass, and the photograph. At any plausible `p` the
+mechanism is a losing trade.
 
 The bond does not need to make fraud impossible. It needs to make fraud a worse business than
-responding — and raising the bond above the pool only sharpens the inequality, which is why
+responding. Raising the bond above the pool only sharpens that inequality, which is why
 `minBondBps` is bounded below at 10,000 and may be set higher.
 
-**The honest cost of that choice.** Bond = 100 % of the pool excludes the poorest responders, who
-are often exactly the village volunteers the system is for. This is a documented trade-off, not an
+**The honest cost of that choice.** A bond of 100 % excludes the poorest responders, who are often
+exactly the village volunteers the system is for. This is a documented trade-off, not an
 oversight. The mitigation is a **cooperative bond pool** (§11): a third-party or CSR-funded contract
 that posts bonds on behalf of vetted responders and takes the slashing risk for a fee.
 
@@ -333,11 +332,11 @@ that posts bonds on behalf of vetted responders and takes the slashing risk for 
 | Colluding responder and verifiers | Both verifiers must be whitelisted; self-attestation is blocked; bond halves on rejection | Two compromised whitelisted keys |
 | Oracle publishes rows that never existed | `fileHash` of the exact CSV is public and re-checkable; batches are one-shot | Oracle chooses *which* rows to publish |
 | Oracle floods the registry | Publisher whitelist; `HotspotPublished` is the permanent audit trail | Owner must curate publishers |
-| Spam claims to deny service | One active claim per bounty; bond ≥ pool; rejection reopens | Capital cost is the only barrier — intended |
+| Spam claims to deny service | One active claim per bounty; bond ≥ pool; rejection reopens | Capital cost is the only barrier. That is intended |
 | Reentrancy on payout | `nonReentrant` on both settlement paths and on `expire`; state zeroed before `call` | — |
 | Double settlement | `settled` flag set before transfer; `AlreadySettled` | — |
 | Verifier griefing an honest claim | Symmetric quorums; rejection needs 2 of the whitelist; bond returns on verifier timeout | Collusion of two verifiers |
-| Owner key compromise | No owner path touches escrow — owner sets verifiers and parameters only | Malicious verifier whitelist is a real, disclosed power |
+| Owner key compromise | No owner path touches escrow. The owner sets verifiers and parameters only | Malicious verifier whitelist is a real, disclosed power |
 | Bounty exceeds the value of the fire it prevents | Documented policy: a bounty must never exceed the fire's cost | Perverse incentive in principle; bounded in practice by backers |
 
 ### 5.3 Invariants, and where they are asserted
@@ -353,8 +352,8 @@ that posts bonds on behalf of vetted responders and takes the slashing risk for 
 | 7 | An unanswered bounty refunds the backer | `testExpireRefundsBackerWhenNobodyAnswers` |
 | 8 | Contract balance is zero in every terminal state | `testHappyPathPaysResponder` asserts `address(bounty).balance == 0`; `testRejectionSlashesBondAndReopens` asserts only the still-escrowed pool remains; `testExpireRefundsBackerWhenNobodyAnswers` asserts the backer is made whole |
 
-`forge test` → **7 passed, 0 failed**. The full happy path — open a bounty, claim with a bond, two
-attestations, payout — executes within **663,799 gas** in the suite.
+`forge test` → **7 passed, 0 failed**. The full happy path (open a bounty, claim with a bond, two
+attestations, payout) executes within **663,799 gas** in the suite.
 
 ---
 
@@ -376,8 +375,8 @@ the deployed `FireBounty` for this document.
 
 **Owner powers, stated plainly.** The owner can whitelist publishers and verifiers and change the
 five tunables above. The owner cannot withdraw escrowed MON, cannot force a settlement, and cannot
-rewrite a committed batch. A malicious owner can whitelist a colluding verifier set — this is the
-centralised component of v1 and it is disclosed in §10.
+rewrite a committed batch. A malicious owner can whitelist a colluding verifier set. That is the
+centralised part of v1, and it is disclosed in §10.
 
 **Deployment.** Foundry, `solc 0.8.24`, optimizer on, 200 runs, `shanghai` EVM. `FireBounty` takes
 the registry address as its only constructor argument. Both contracts are verified on Monadscan by
@@ -397,7 +396,7 @@ Every hotspot is an independent escrow with its own bond, quorum, and settlement
 shared between hotspot #1 and hotspot #2. A day of national data is **~22,760 detections**; with
 claims, attestations, top-ups and payouts that is tens of thousands of *independent* state
 transitions per day. Monad executes independent transactions in parallel; a sequential-execution EVM
-serialises them. This is the textbook case parallel execution exists for — not a benchmark, a shape.
+serialises them. This is the shape of workload parallel execution was built for, not a benchmark.
 
 ### 7.2 Micro-bounty economics decide whether the mechanism exists at all
 
@@ -408,12 +407,12 @@ Illustrative arithmetic, assuming four on-chain actions per settled bounty:
 |---|---|---|
 | $0.20 | 4.0 % | The mechanism is taxed before it pays anyone |
 | $0.02 | 0.40 % | Tolerable |
-| $0.002 | 0.04 % | Invisible — the bounty is the whole product |
+| $0.002 | 0.04 % | Invisible. The bounty is the whole product |
 
 The fee figures are illustrative; the point is the shape of the curve. At $0.20 per action a
 responder's bond and the backer's budget are already paying a visible tax, and a Rp 150k–500k
-bounty stops making sense. The mechanism does not degrade gracefully — below a certain fee it
-simply exists, above it, it does not.
+bounty stops making sense. The mechanism does not degrade gracefully: below a certain fee it
+exists, above it, it does not.
 
 ### 7.3 Finality is functional, not cosmetic
 
@@ -444,20 +443,20 @@ camera → canvas downscale to 1280 px, JPEG q0.82 → SHA-256 of the bytes
 
 | Stage | Implementation | Property gained |
 |---|---|---|
-| Capture and compress | `web/frontend/src/lib/compress.ts` — 1280 px long edge, JPEG q0.82 | A 6 MB phone photo becomes a few hundred KB, inside the 8 MB cap |
-| Content addressing | `evidence.ts` — the R2 key **is** the SHA-256 of the bytes, `^[a-f0-9]{64}\.(jpg\|png\|webp)$` | The same photo always resolves to the same immutable object; nobody can overwrite someone else's proof |
+| Capture and compress | `web/frontend/src/lib/compress.ts`: 1280 px long edge, JPEG q0.82 | A 6 MB phone photo becomes a few hundred KB, inside the 8 MB cap |
+| Content addressing | `evidence.ts`: the R2 key **is** the SHA-256 of the bytes, `^[a-f0-9]{64}\.(jpg\|png\|webp)$` | The same photo always resolves to the same immutable object; nobody can overwrite someone else's proof |
 | Storage | Cloudflare Worker + R2, `Cache-Control: immutable` | Cheap, durable, no server to babysit, no account to create |
-| On-chain | `evidenceHash = keccak256(bytes(url))`, raw URL in `ClaimSubmitted` | 32 bytes on-chain, full evidence in the log — the classic "hash on-chain, payload in the event" split |
+| On-chain | `evidenceHash = keccak256(bytes(url))`, raw URL in `ClaimSubmitted` | 32 bytes on-chain, full evidence in the log: the usual hash-on-chain, payload-in-the-event split |
 
 The claim button in the app stays disabled until three conditions hold: a wallet is connected, the
 photo is stored and its URL resolved, and the **required bond has actually been read from the
-contract**. The third one matters — a bond computed client-side would be a silent way to send a
-transaction that reverts.
+contract**. The third one matters: a bond computed client-side is a quiet way to send a transaction
+that reverts.
 
 **What this proves and what it does not.** It proves the evidence object is exactly what the
 responder submitted, unmodified and retrievable by anyone, forever. It does not prove the photo was
-taken at that coordinate at that time — that is bounded by the 25 km radius, the timestamp floor,
-two attestations and the bond, and fully solving it needs EXIF signing and device attestation in v2.
+taken at that coordinate at that time. The 25 km radius, the timestamp floor, two attestations and the
+bond bound how much that matters. Solving it fully needs EXIF signing and device attestation in v2.
 
 ---
 
@@ -476,10 +475,11 @@ The front end is a reader of two contracts, not a database client. There is no b
 
 **Engineering constraints discovered from the public RPC, not assumed.** The official endpoint allows
 roughly 15 req/s and rejects bursts with 429; `eth_getLogs` is capped at 100 blocks; Multicall3
-returned inconsistent results through it. The client therefore uses **no logs, no multicall** — one
+returned inconsistent results through it. The client therefore uses no logs and no multicall: one
 `eth_call` per id, paced in waves, with a read-only fallback chain ordered by measured behaviour
-(ankr first, official node second as the trusted opinion, drpc last). This is the least elegant and
-most reliable option, and a demo cannot afford an empty map because one endpoint got moody.
+(ankr first, the official node second as the trusted opinion, drpc last). This is the least elegant
+option and the most reliable one, and a demo cannot afford an empty map because one endpoint got
+moody.
 
 **Test coverage.** 15 test files, **219 passing Vitest tests**, covering geo maths, bond gating,
 receipts, the evidence pipeline, deep links, both wallet paths, and both interaction components.
@@ -494,11 +494,11 @@ Stated before anyone else states them.
 | Limitation | Honest position |
 |---|---|
 | Satellite NRT lags reality by hours | Correct, and exactly why the ground layer must not be gated on the satellite. ASAP pays for arrival; the satellite only opens the bounty. |
-| Radius check is a flat-earth approximation | Within 8° of the equator `cos(lat) ≥ 0.990`, so the error is ~1 % at 25 km. Real haversine is a v2 line item, not a hackathon one — and the app uses the identical formula so the receipt and the contract can never disagree about what "25 km" means. |
+| Radius check is a flat-earth approximation | Within 8° of the equator `cos(lat) ≥ 0.990`, so the error is ~1 % at 25 km. Real haversine is a v2 line item. The app uses the identical formula, so the receipt and the contract cannot disagree about what "25 km" means. |
 | One active claim per bounty | Deliberate. Concurrent claims need race resolution, race resolution needs a reviewer with discretion, and discretionary review needs an appeal window. That is v2, not a shortcut. |
 | Verification is a trusted quorum | True. The bond makes lying unprofitable and the quorum makes collusion expensive, but a malicious owner plus two keys is a real attack. v2: stake-weighted verifiers with a slashing appeal window. |
 | Evidence can be a photo of a different fire | Mitigated (timestamp floor, 25 km radius, two attestations, bond at risk), not solved. |
-| Publisher whitelist is permissioned | Deliberate — a permissionless pusher is a DDoS surface, and the file hash is what makes a lying publisher detectable. |
+| Publisher whitelist is permissioned | Deliberate. A permissionless pusher is a DDoS surface, and the file hash is what makes a lying publisher detectable. |
 | Paying for fire reports has perverse incentives | Real. Bond, radius, timestamp and quorum bound it, and a bounty must never exceed the cost of the fire it prevents. |
 | IDR is a display rate, not a settlement rail | The UI reads a `MON_IDR` rate for readability. Responders are paid in MON and bear the conversion themselves until v3 off-ramp. |
 | The unanswered-rate metric has n = 5 | Honest: it is 0 of 5 today and says nothing yet. It is defined precisely so it can be tracked from the first day it matters. |
@@ -512,10 +512,10 @@ Each phase is scoped by what it unlocks, not by what it sounds like.
 | Phase | Item | Why it is next |
 |---|---|---|
 | **v1.1** | Haversine radius; EXIF + device-signature attestation; per-claim bond top-ups | Closes the two "mitigated, not solved" rows |
-| **v1.2** | **Cooperative bond pool** — a contract that posts bonds for vetted village brigades and takes the slashing risk for a fee | Directly answers the strongest objection to `bond = 100 % pool`, which is exclusion of the poorest responders |
+| **v1.2** | **Cooperative bond pool**: a contract that posts bonds for vetted village brigades and takes the slashing risk for a fee | Directly answers the strongest objection to `bond = 100 % pool`, which is exclusion of the poorest responders |
 | **v2** | Stake-weighted verifiers, an appeal window, and a slashing schedule for verifiers who attest wrongly | Replaces the centralised trust root with an economic one |
 | **v2.1** | Envio indexer + public API | Makes the expiry ledger queryable at national scale; today's app deliberately avoids logs |
-| **v3** | Parametric backer policies — a concession or insurer funds bounties automatically for hotspots inside its boundary; MON→IDR off-ramp for responders | Turns the product from a tool into a market, and removes the last friction for a volunteer with no exchange account |
+| **v3** | Parametric backer policies: a concession or insurer funds bounties automatically for hotspots inside its boundary; MON→IDR off-ramp for responders | Turns the product from a tool into a market, and removes the last friction for a volunteer with no exchange account |
 
 The order is a dependency order. The bond pool before stake-weighted verifiers, because the
 exclusion problem is more urgent than the decentralisation problem; the indexer after v2, because
@@ -533,8 +533,8 @@ Read from the deployed contracts on 24 October 2026.
 | Bounties opened | **5** |
 | Claims submitted | **2** |
 | Verified settlements | **1** (§12.1) |
-| Claimed, awaiting quorum | **1** — bond `0.05 MON`, 0 approvals |
-| Open, unfunded by a responder | **3** — `0.02 + 0.01 + 0.01 MON` = **0.04 MON** in escrow |
+| Claimed, awaiting quorum | **1**: bond `0.05 MON`, 0 approvals |
+| Open, unfunded by a responder | **3**: `0.02 + 0.01 + 0.01 MON` = **0.04 MON** in escrow |
 | Expired ("no responder") | **0** |
 | Registry source | NASA FIRMS VIIRS SNPP C2 NRT, batch `0x89eb56…` anchored to the keccak256 of the raw CSV |
 
@@ -543,11 +543,11 @@ Read from the deployed contracts on 24 October 2026.
 | Field | Value |
 |---|---|
 | Bounty / claim | `#1` / `#1` |
-| Hotspot | `#1` — `-1.423340, 104.082950`, on Sumatra's east coast, ≈57 km ENE of Jambi; FRP 289.6 MW; high confidence |
+| Hotspot | `#1`: `-1.423340, 104.082950`, on Sumatra's east coast, ≈57 km ENE of Jambi; FRP 289.6 MW; high confidence |
 | Satellite acquisition | 2026-10-22 23:29 UTC |
 | Responder | `0xbe500Dd19a075af040279612bE845563a8A81B73` |
-| Evidence coordinates | `-1.423340, 104.082950` — distance 0 m, inside the 25 km radius |
-| Evidence captured | 2026-10-24 05:10 UTC — after acquisition, as the contract requires |
+| Evidence coordinates | `-1.423340, 104.082950`, distance 0 m, inside the 25 km radius |
+| Evidence captured | 2026-10-24 05:10 UTC, after acquisition, as the contract requires |
 | Approvals | **2** of quorum 2 → settled |
 | Status | `Verified`, pool zeroed, bond returned with the payout |
 
@@ -560,18 +560,18 @@ row is the proof.
 ## 13. Conclusion
 
 Indonesia does not have a detection problem. It has a last-mile problem: the satellite knows, and
-nobody is paid to act on what it knows. ASAP is deliberately small — two contracts, native MON, no
-token, no indexer, no accounts — because the only thing that has to work is the sentence:
+nobody is paid to act on what it knows. ASAP stays small on purpose. Two contracts, native MON, no
+token, no indexer, no accounts, because only one sentence has to work:
 
 > **A hotspot opens a bounty, and the first person who can prove they got there gets paid.**
 
-The mechanism that makes that sentence safe is equally small: a bond equal to the bounty, a
-timestamp floor, a 25 km radius, and two independent attestations. The mechanism that makes it
-matter is the state nobody else publishes: `Expired` — a fire with money on it and no one who came.
+What keeps that sentence honest is small too: a bond equal to the bounty, a timestamp floor, a 25 km
+radius, and two attestations. What makes it worth anything is the state nobody else publishes:
+`Expired`, a fire with money on it and nobody who came.
 
-Built on Monad because the workload is thousands of independent escrows a day, because a Rp 150k
-bounty only makes sense when the fee is noise, and because a person standing in smoke cannot wait
-thirty seconds to find out whether their proof landed.
+The chain choice follows from the workload. Thousands of independent escrows a day need parallel
+execution. A Rp 150k bounty only makes sense while the fee is noise. And a person standing in smoke
+cannot wait thirty seconds to find out whether their proof landed.
 
 ---
 
@@ -588,7 +588,7 @@ thirty seconds to find out whether their proof landed.
 
 ---
 
-## Appendix A — Contract API
+## Appendix A: contract API
 
 **`HotspotRegistry`**
 
@@ -615,7 +615,7 @@ thirty seconds to find out whether their proof landed.
 **Events** (the whole indexer, for now): `BatchCommitted`, `HotspotPublished`, `BountyOpened`,
 `BountyFunded`, `ClaimSubmitted`, `ClaimAttested`, `ClaimVerified`, `ClaimRejected`, `BountyExpired`.
 
-## Appendix B — Reproducing every number here
+## Appendix B: reproducing every number here
 
 ```bash
 cd contracts && forge test -vv                      # 7 passed

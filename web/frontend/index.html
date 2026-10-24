@@ -4,11 +4,11 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>ASAP — the last mile between a satellite and a fire</title>
-<meta name="description" content="Satellites detect a fire hotspot. A bounty opens on-chain. The first responder who proves they arrived gets paid. Built on Monad." />
+<meta name="description" content="A satellite detects a fire, a bounty opens on-chain, and the first responder who proves they got there gets paid. Built on Monad." />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <meta property="og:type" content="website" />
 <meta property="og:title" content="ASAP — smoke is a signal, somebody has to move" />
-<meta property="og:description" content="Satellites detect a fire hotspot. A bounty opens on-chain. The first responder who proves they arrived gets paid. Built on Monad." />
+<meta property="og:description" content="A satellite detects a fire, a bounty opens on-chain, and the first responder who proves they got there gets paid. Built on Monad." />
 <meta property="og:url" content="https://asapmonad.web.id/" />
 <meta property="og:image" content="https://asapmonad.web.id/brand/og.png" />
 <meta property="og:image:width" content="1200" />
@@ -242,9 +242,9 @@
     <h2 class="hero-title">Satellites see the <em>smoke</em>. Nobody pays the person who reaches it.</h2>
 
     <p class="lede">
-      Indonesia's fire season is a detection problem that was already solved — and a last-mile
-      problem that was not. ASAP turns a hotspot into an on-chain bounty and pays the first
-      responder who can prove they got there.
+      Indonesia finds its fires within hours. Getting a person to one is still ad hoc, uncompensated
+      work. ASAP turns a hotspot into a bounty on Monad and pays the first responder who can prove
+      they got there.
     </p>
 
     <div class="cta">
@@ -273,14 +273,15 @@
         />
       </div>
       <figcaption>
-        <b>The live app, not a mockup.</b> 80 hotspots read one by one from
-        <span class="mono">HotspotRegistry</span> — no indexer, no backend, no database.
+        <b>The live app, photographed.</b> 80 hotspots read one at a time straight out of
+        <span class="mono">HotspotRegistry</span>, with nothing sitting between the browser and the
+        chain.
       </figcaption>
     </figure>
   </section>
 
   <section>
-    <h3>The gap, in three numbers</h3>
+    <h3>The gap, in numbers</h3>
     <div class="figures">
       <div class="figure">
         <b>17,108</b>
@@ -294,7 +295,7 @@
       </div>
       <div class="figure">
         <b>0</b>
-        <span>of those coordinates carried a budget, a proof of arrival, or a payment.</span>
+        <span>of those coordinates carried a budget or a way to prove someone showed up.</span>
         <small>that is the part we built</small>
       </div>
     </div>
@@ -304,19 +305,19 @@
 <section class="band">
   <div class="band-bg" aria-hidden="true"></div>
   <div class="wrap band-inner">
-    <p>Somewhere past this track is a hotspot the satellite already recorded.</p>
-    <cite>Nobody is on this road — and until now, nothing would have paid them if they were.</cite>
+    <p>The satellite has already recorded a fire past this track.</p>
+    <cite>Detected within the last 24 hours. Answerable by whoever reaches it first.</cite>
   </div>
 </section>
 
 <div class="wrap">
   <section>
     <h3>How a fire gets answered</h3>
-    <h4>Four steps, one block.</h4>
+    <h4>Every step is a transaction.</h4>
     <div class="steps">
       <div class="step">
         <h5>Detect</h5>
-        <p>An oracle commits the hash of the raw FIRMS file, then publishes the parsed rows. Anyone can re-download it and prove it was not altered.</p>
+        <p>An oracle commits the hash of the raw FIRMS file, then publishes the parsed rows. Anyone can re-download that file and prove the rows were not altered.</p>
         <span class="t">HotspotRegistry</span>
       </div>
       <div class="step">
@@ -326,12 +327,12 @@
       </div>
       <div class="step">
         <h5>Respond</h5>
-        <p>A responder stakes a bond and submits geotagged evidence — a photo, hashed and stored content-addressed. The contract enforces radius and time.</p>
+        <p>A responder stakes a bond and submits geotagged evidence: a photo, hashed, stored by its own hash. The contract enforces the radius and the time.</p>
         <span class="t">bond ≥ pool</span>
       </div>
       <div class="step">
         <h5>Settle</h5>
-        <p>Two verifiers attest and the payout clears. Two rejections slash the bond and reopen the bounty. Nobody shows up, and the expiry is public.</p>
+        <p>Two verifiers attest and the payout clears. Two rejections slash the bond and reopen the bounty. If nobody shows up, the expiry is public.</p>
         <span class="t">quorum = 2</span>
       </div>
     </div>
@@ -355,7 +356,7 @@
 
       <div class="cmp-label">Where it works</div>
       <div class="cmp-cell"><em class="cmp-tag">Permit bond</em>only inside a registered concession</div>
-      <div class="cmp-cell"><em class="cmp-tag bounty">Bounty</em>any hotspot, no permit or registry needed</div>
+      <div class="cmp-cell"><em class="cmp-tag bounty">Bounty</em>any hotspot, whether or not a permit exists</div>
 
       <div class="cmp-label">When nobody comes</div>
       <div class="cmp-cell"><em class="cmp-tag">Permit bond</em>the case stays open, nobody is named</div>
@@ -363,7 +364,7 @@
     </div>
     <p class="cmp-close">
       A bond punishes someone after the land has burned. A bounty pays someone to reach the smoke
-      while it is still small. Both belong in the same country; only one of them moves a person.
+      while it is still small. Indonesia needs both. Only the second one moves a person.
     </p>
   </section>
 
@@ -373,10 +374,10 @@
         <h3>Why it does not get gamed</h3>
         <h4>A fake report has to be more expensive than it is worth.</h4>
         <ul>
-          <li><span class="tick">✓</span><span><b>Bond equals the pool.</b> Claiming costs as much as the reward, so lying is strictly unprofitable — and the honest responder gets it back.</span></li>
-          <li><span class="tick">✓</span><span><b>Evidence cannot predate the satellite pass.</b> The contract checks the capture timestamp against the hotspot's acquisition time.</span></li>
-          <li><span class="tick">✓</span><span><b>Distance is enforced on-chain.</b> A flat-earth approximation within 8° of the equator, accurate to about 1% — 25 km radius.</span></li>
-          <li><span class="tick">✓</span><span><b>Expiry is a feature.</b> A bounty nobody answered stays on the public record as a fire that was funded and ignored.</span></li>
+          <li><span class="tick">✓</span><span>Claiming costs as much as the reward. The bond equals the pool, so lying loses money and the honest responder gets the bond back.</span></li>
+          <li><span class="tick">✓</span><span>The contract refuses evidence that predates the satellite pass, so a photo of last week's fire does not count.</span></li>
+          <li><span class="tick">✓</span><span>The 25 km radius is checked on-chain. It uses a flat-earth approximation, which is within about 1% this close to the equator.</span></li>
+          <li><span class="tick">✓</span><span>Expiry is a feature. A bounty nobody answered stays on the public record as a fire that was funded and ignored.</span></li>
         </ul>
       </div>
       <div class="code">
@@ -392,16 +393,16 @@ attest(claimId, true)
   <section>
     <h3>What is actually deployed</h3>
     <div class="figures">
-      <div class="figure"><b>180</b><span>high-confidence hotspots published on-chain in one batch, anchored to the source file hash.</span></div>
-      <div class="figure"><b>2</b><span>contracts, source-verified on Sourcify, holding zero balance in every terminal state.</span></div>
-      <div class="figure"><b>&lt;1 s</b><span>from a verifier's second approval to the responder being paid. That is the Monad part.</span></div>
+      <div class="figure"><b>180</b><span>high-confidence hotspots published on-chain in one batch, anchored to the hash of the source file.</span></div>
+      <div class="figure"><b>2</b><span>contracts, both source-verified on Monadscan and Sourcify, with a zero balance in every terminal state.</span></div>
+      <div class="figure"><b>&lt;1 s</b><span>from a verifier's second approval to the responder being paid. On Monad that is one block.</span></div>
     </div>
   </section>
 
   <section>
     <h3>What this does not do yet</h3>
     <div class="limits">
-      <div class="limit"><b>Satellite data lags.</b><p>NRT is hours behind reality, and we never claim a fire is burning right now — only that it was detected in the last 24 hours.</p></div>
+      <div class="limit"><b>Satellite data lags.</b><p>NRT runs hours behind reality, so we never claim a fire is burning right now. The most we say is that it was detected in the last 24 hours.</p></div>
       <div class="limit"><b>Trusted quorum.</b><p>Verification is two whitelisted addresses today. v2 is stake-weighted verifiers with an appeal window.</p></div>
       <div class="limit"><b>Bond excludes the poorest.</b><p>A 100% bond makes fraud unprofitable, and also means a volunteer with no capital cannot respond. A cooperative bond pool is the fix.</p></div>
       <div class="limit"><b>%VITE_RISK_TITLE%</b><p>%VITE_RISK_BODY%</p></div>
@@ -410,7 +411,7 @@ attest(claimId, true)
     <div class="next">
       <div>
         <b>The long version</b>
-        <p>Mechanism design, the bond game theory, the threat model, what breaks first, and the state of record read straight from the contracts — 13 sections, no marketing.</p>
+        <p>Mechanism design, the bond maths, the threat model, what breaks first, and the state of record read straight from the contracts. Every number in it came off the chain.</p>
       </div>
       <a class="btn btn-primary" href="/whitepaper">Read the whitepaper →</a>
     </div>

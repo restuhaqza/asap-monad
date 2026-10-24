@@ -82,7 +82,7 @@ describe('ReceiptCard — settled before this build', () => {
     expect(screen.queryByText(/MON$/)).not.toBeInTheDocument();
     expect(screen.getByText('—')).toBeInTheDocument(); // verifier reward, unknown
     expect(
-      screen.getByText(/Payout amount unknown — nobody in this browser waited for the settlement/),
+      screen.getByText(/Payout amount unknown\. Nobody in this browser waited for the settlement/),
     ).toBeInTheDocument();
 
     // The facts that are still readable on-chain are shown.

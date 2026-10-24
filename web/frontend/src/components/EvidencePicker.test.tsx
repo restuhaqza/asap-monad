@@ -223,7 +223,7 @@ describe('EvidencePicker — upload failure', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('Upload failed: network down — paste a URL instead.'),
+        screen.getByText('Upload failed: network down. Paste a URL instead.'),
       ).toBeInTheDocument();
     });
 
@@ -313,7 +313,7 @@ describe('EvidencePicker — wallet balance', () => {
 
     await user.type(screen.getByPlaceholderText(/paste an IPFS CID/i), 'ipfs://bafy-test');
 
-    expect(screen.getByText(/Not enough MON for the bond/i)).toBeInTheDocument();
+    expect(screen.getByText(/You need .* MON for the bond/i)).toBeInTheDocument();
     expect(claimButton()).toBeDisabled();
     fireEvent.click(claimButton());
     expect(onClaim).not.toHaveBeenCalled();
@@ -325,7 +325,7 @@ describe('EvidencePicker — wallet balance', () => {
 
     await user.type(screen.getByPlaceholderText(/paste an IPFS CID/i), 'ipfs://bafy-test');
 
-    expect(screen.queryByText(/Not enough MON/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/for the bond and do not have it/i)).not.toBeInTheDocument();
     expect(claimButton()).toBeEnabled();
   });
 });

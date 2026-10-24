@@ -117,7 +117,7 @@ export default function App() {
             <div className="rail-head">
               <h2>Hotspots</h2>
               <p>
-                Read directly from <span className="mono">HotspotRegistry</span> · no indexer
+                Read straight from <span className="mono">HotspotRegistry</span>, one call per row
               </p>
             </div>
 

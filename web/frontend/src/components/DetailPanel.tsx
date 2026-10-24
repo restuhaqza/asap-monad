@@ -69,15 +69,15 @@ function ledeFor(status: number, pool: bigint, acqTime: number): string {
   const when = relativeTime(acqTime);
   switch (status) {
     case STATUS_OPEN:
-      return `${formatMon(pool)} MON is waiting for the first responder who can prove they got there — a photo, a GPS fix, and a bond that comes back if a verifier approves it.`;
+      return `${formatMon(pool)} MON is waiting for the first responder who can prove they got there: a photo, a timestamp after the satellite pass, and a bond that comes back if a verifier approves it.`;
     case STATUS_CLAIMED:
       return 'Someone has filed proof. Two verifiers have to approve it before any money moves.';
     case STATUS_VERIFIED:
       return 'Answered. Someone proved they reached this spot, and the payout is already on-chain.';
     case NO_BOUNTY:
-      return `A satellite picked this up ${when}. Nobody has put money behind it yet — opening a bounty is what makes one person responsible for answering it.`;
+      return `A satellite picked this up ${when}. Nobody has put money behind it yet. Opening a bounty is what makes one person responsible for answering it.`;
     default:
-      return `Nobody answered this fire before the deadline. The backer was refunded, and it stays on the map as a fire nobody answered.`;
+      return `Nobody answered this fire before the deadline. The backer got their money back, and the fire stays on the map as unanswered.`;
   }
 }
 

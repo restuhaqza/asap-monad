@@ -2,7 +2,7 @@
  * Evidence capture for a claim.
  *
  * Each control is a `<label>` with its own `<input type="file">` stretched over
- * it at zero opacity. The click therefore lands on the native input itself —
+ * it at zero opacity. The click therefore lands on the native input itself,
  * no `input.click()` call anywhere. That matters: Safari and several WebViews
  * ignore a programmatic click on a visually hidden input, which is exactly how
  * "Choose file does nothing" happened in the field.
@@ -75,7 +75,7 @@ export function EvidencePicker({
         // claim; if it did not, say what to do about it.
         if (!READABLE_TYPES.test(file.type)) {
           throw new Error(
-            `${file.type || 'this format'} cannot be read by this browser — use Take photo`,
+            `${file.type || 'this format'} cannot be read by this browser. Use Take photo instead.`,
           );
         }
         if (file.size > MAX_UPLOAD_BYTES) {
@@ -93,7 +93,7 @@ export function EvidencePicker({
       setState(`Stored · ${formatSha256Prefix(upload.sha256)}`);
     } catch (error) {
       setEvidence('');
-      setState(`Upload failed: ${errorMessage(error)} — paste a URL instead.`);
+      setState(`Upload failed: ${errorMessage(error)}. Paste a URL instead.`);
     } finally {
       setBusy(false);
     }
@@ -147,7 +147,7 @@ export function EvidencePicker({
       window.removeEventListener('blur', markOpened);
       if (!opened) {
         setState(
-          'No file dialog opened. Your browser or an extension may be blocking it — try a new tab, or disable extensions for this site.',
+          'No file dialog opened. Your browser or an extension may be blocking it. Try a new tab, or turn extensions off for this site.',
         );
       }
     }, 2500);
@@ -192,7 +192,7 @@ export function EvidencePicker({
       </div>
 
       <div className="ev-alt">
-        or paste a screenshot (⌘V) — no file dialog needed
+        or press ⌘V to paste a screenshot
       </div>
 
       {previewUrl ? <img className="ev-preview" src={previewUrl} alt="evidence preview" /> : null}
@@ -226,8 +226,8 @@ export function EvidencePicker({
         {!bondReady
           ? 'Reading the required bond from the contract…'
           : !affordable
-            ? `Not enough MON for the bond — you need ${formatMon(bondWei)} MON.`
-            : 'Add evidence first — a photo or a URL. Bond ≥ pool is slashed if two verifiers reject.'}
+            ? `You need ${formatMon(bondWei)} MON for the bond and do not have it.`
+            : 'Add evidence first, a photo or a URL. A bond at or above the pool is slashed if two verifiers reject.'}
       </div>
     </div>
   );

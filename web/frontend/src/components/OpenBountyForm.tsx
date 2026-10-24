@@ -49,8 +49,8 @@ export function OpenBountyForm({ disabled, onSubmit }: OpenBountyFormProps) {
       </div>
 
       <div className="hint">
-        Escrow is funded by whoever carries the risk — a concession, a carbon project, a CSR budget,
-        or BPBD.
+        Whoever carries the risk funds the escrow: a concession, a carbon project, a CSR budget, or
+        BPBD.
       </div>
     </div>
   );

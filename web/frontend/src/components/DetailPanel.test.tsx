@@ -290,7 +290,7 @@ describe('DetailPanel — header facts', () => {
     setup({ bountyValue: null });
 
     expect(
-      screen.getByText(/Nobody has put money behind it yet — opening a bounty is what makes/),
+      screen.getByText(/Nobody has put money behind it yet\. Opening a bounty is what makes/),
     ).toBeInTheDocument();
     expect(screen.getByText('nobody has funded this fire yet')).toBeInTheDocument();
   });

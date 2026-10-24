@@ -4,8 +4,8 @@
  * After settlement the contract zeroes the pool and the bond, so the amount only
  * exists in the `ClaimVerified` event. When this browser captured that event the
  * card states the exact payout; when the bounty was settled elsewhere or earlier,
- * it says so and shows only the facts that are still on-chain. Evidence, not
- * decoration — no confetti, no invented numbers.
+ * it says so and shows only the facts that are still on-chain. No confetti,
+ * no invented numbers.
  */
 
 import { useState } from 'react';
@@ -58,8 +58,8 @@ export function ReceiptCard({ hotspot, claim, receipt }: ReceiptCardProps) {
           <>
             <b>settled before this build</b>
             <span>
-              The payout is not recoverable from contract state — the pool and bond are zeroed
-              on settlement. The facts below are the parts that are still on-chain.
+              The payout is not recoverable from contract state, because settlement zeroes the pool
+              and the bond. What follows is only the part that is still on-chain.
             </span>
           </>
         )}
@@ -133,7 +133,7 @@ export function ReceiptCard({ hotspot, claim, receipt }: ReceiptCardProps) {
           </a>
         ) : (
           <span>
-            Payout amount unknown — nobody in this browser waited for the settlement receipt.
+            Payout amount unknown. Nobody in this browser waited for the settlement receipt.
           </span>
         )}
       </div>
