@@ -114,7 +114,7 @@ Mainnet deploy transactions: [`0x60e378aa…c6ace3`](https://monadscan.com/tx/0x
 | Fund verifiers B and C (gas only) | [`0x8dfb8697`](https://monadscan.com/tx/0x8dfb8697c4c24bc170ad84b2951e8197e932faacf139e96c9f01389ae0112061) · [`0x319a7931`](https://monadscan.com/tx/0x319a793111bf705e6638bf92660eb56a94cb6ed974eab592db41d832bbc982db) |
 | Whitelist both verifiers | [`0x5abb1090`](https://monadscan.com/tx/0x5abb1090a22cd923aa924e648a18d067a30721dc0ae8e9fc15df3039b12f9db6) · [`0xeb202128`](https://monadscan.com/tx/0xeb202128270870b970b86a62b1e9c1a372439b38114de44c6cd7f4ae91d7385a) |
 | Open bounty #1 on hotspot 3, 0.05 MON, 6 h | [`0xa316cf0c`](https://monadscan.com/tx/0xa316cf0c45f98746062baf49a54c6ef4fc49ed950ed294dda704ea2bef1c6614) |
-| Claim with a 0.05 MON bond, 0 m from the hotspot | [`0x4427aec c`](https://monadscan.com/tx/0x4427aecc977c281719f7f2b4529f3be91353241b355a93edcf47bd3e99f63019) |
+| Claim with a 0.05 MON bond, 0 m from the hotspot | [`0x4427aecc`](https://monadscan.com/tx/0x4427aecc977c281719f7f2b4529f3be91353241b355a93edcf47bd3e99f63019) |
 | Two verifier approvals → payout in the same block | [`0xee754ba5`](https://monadscan.com/tx/0xee754ba5fa7dff03ee4b77848cae1317dbcb78de376b4b33a22c8ad414047439) · [`0x3265ae51`](https://monadscan.com/tx/0x3265ae5193dae64ff8e5659a89ac5a143df7da65e33f3ac26ecb70cfbbc22d15) |
 
 Open [hotspot #3 on the mainnet app](https://asapmonad.web.id/portal#h=3) and the panel shows the verdict, the responder, the distance (0 m), the approval count (2 of 2) and the evidence hash — read back from the chain, not from a mock.
