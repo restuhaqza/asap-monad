@@ -21,7 +21,7 @@ ASAP is the layer between the satellite and the shovel. A hotspot opens a bounty
 | [`contracts/test/FireBounty.t.sol`](contracts/test/FireBounty.t.sol) | 7 tests: payout, bond, radius, timestamp, slash, expiry, self-attest |
 | [`scripts/fetch-hotspots.py`](scripts/fetch-hotspots.py) | Pulls live NASA FIRMS data, writes the fixture, prints the `commitBatch` command |
 | [`scripts/wallet-tui.sh`](scripts/wallet-tui.sh) | Dev tool: interactive terminal wallet — balance, send MON, switch testnet/mainnet, keystore or in-memory key |
-| [`web/frontend/`](web/frontend/) | React 19 + Vite app: Leaflet map, bounty/claim/attest flows, photo evidence upload · 144 Vitest tests |
+| [`web/frontend/`](web/frontend/) | React 19 + Vite app: Leaflet map, bounty/claim/attest flows, photo evidence upload, payment receipts · 188 Vitest tests |
 | [`web/data/hotspots.json`](web/data/hotspots.json) | Generated hotspot fixture used by the pusher |
 | [`docs/asap-demo-30s.mp4`](docs/asap-demo-30s.mp4) | 30 s demo cut: the gap, the bounty, the payout |
 
@@ -50,7 +50,7 @@ cd web/frontend
 npm install
 npm run dev          # http://localhost:5173 — app plus a dev evidence endpoint
 npm run build        # typecheck, then bundle to dist/
-npm test             # 144 Vitest tests
+npm test             # 188 Vitest tests
 npx wrangler deploy  # Cloudflare Worker: static assets + /api/evidence
 ```
 
@@ -104,7 +104,9 @@ Verification is an **exact match** on both contracts (compiler `0.8.24`, optimiz
 | Deployed to Monad testnet | ✅ both contracts, verified |
 | Pusher script writing hotspots on-chain | ✅ 180 hotspots, batch `0x89eb56…` |
 | Web app wired to the chain | ✅ [asapmonad.web.id/portal](https://asapmonad.web.id/portal) — React 19 + Vite |
-| Web app tests | ✅ 144/144 Vitest (lib, hooks, evidence, both interaction components) |
+| Web app tests | ✅ 188/188 Vitest (lib, hooks, evidence, stats, receipt, both interaction components) |
+| `"no responder"` counter | ✅ header counter read from bounty status 4 — **0 today**, no bounty has expired yet; an expiry on bounty #4 becomes callable at 18:22 WIB |
+| Payment receipt on verified bounties | ✅ responder, distance, evidence, approvals and verifier reward on every verified bounty; the exact payout appears when this browser waited for the settlement tx, bounties settled earlier say "settled before this build" instead of guessing |
 | Mainnet deploy + verification | ⬜ before 16:30 |
 | Contract addresses in README | ✅ |
 | Public live URL | ✅ custom domain on Cloudflare |

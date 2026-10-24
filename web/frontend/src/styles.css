@@ -810,6 +810,11 @@ aside {
     background: var(--line);
     margin: -2px auto 9px;
   }
+  /* The close button is absolutely positioned over the head; without this the
+     status pill sits underneath it. */
+  .detail-head {
+    padding-right: 48px;
+  }
   .detail-close {
     display: inline-flex;
     width: 44px;
