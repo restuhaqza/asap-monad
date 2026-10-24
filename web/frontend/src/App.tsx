@@ -127,6 +127,7 @@ export default function App() {
                 onAttest={(claimId, approve) => {
                   void actions.attest(claimId, approve);
                 }}
+                onClose={() => setSelected(null)}
               />
             )}
           </aside>

@@ -30,6 +30,8 @@ interface DetailPanelProps {
     bondWei: bigint,
   ) => void;
   onAttest: (claimId: number, approve: boolean) => void;
+  /** Mobile only: dismisses the bottom sheet. Hidden on desktop by CSS. */
+  onClose?: () => void;
 }
 
 export function DetailPanel({
@@ -40,6 +42,7 @@ export function DetailPanel({
   onOpenBounty,
   onClaim,
   onAttest,
+  onClose,
 }: DetailPanelProps) {
   const status = bounty?.status ?? NO_BOUNTY;
   const color = statusColor(status);
@@ -51,6 +54,12 @@ export function DetailPanel({
 
   return (
     <div className="detail" id="detail">
+      {onClose ? (
+        <button type="button" className="detail-close" onClick={onClose} aria-label="Close details">
+          ✕
+        </button>
+      ) : null}
+
       <div className="detail-head">
         <div>
           <div className="muted detail-eyebrow">

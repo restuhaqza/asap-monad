@@ -268,3 +268,34 @@ describe('DetailPanel — header facts', () => {
     expect(onOpenBounty).not.toHaveBeenCalled();
   });
 });
+
+describe('DetailPanel — bottom sheet dismissal (mobile)', () => {
+  beforeEach(() => {
+    useRequiredBondMock.mockReturnValue({ bond: BOND, ready: true });
+  });
+
+  const props = {
+    hotspot,
+    bounty: null,
+    isVerifier: false,
+    account: ACCOUNT,
+    onOpenBounty: vi.fn(),
+    onClaim: vi.fn(),
+    onAttest: vi.fn(),
+  };
+
+  it('renders no close control when onClose is not supplied (desktop stays inline)', () => {
+    render(<DetailPanel {...props} />);
+
+    expect(screen.queryByLabelText('Close details')).not.toBeInTheDocument();
+  });
+
+  it('shows a close control and reports dismissal when onClose is supplied', async () => {
+    const onClose = vi.fn();
+    render(<DetailPanel {...props} onClose={onClose} />);
+
+    await userEvent.click(screen.getByLabelText('Close details'));
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+});
