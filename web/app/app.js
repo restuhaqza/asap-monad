@@ -511,6 +511,7 @@ $('connect').onclick = () => connect().catch((e) => toast(short(e.message)));
     render();
     done();
     toast(`${hotspots.size} hotspots on-chain · ${bounties.size} bounties`);
+    const wanted = Number((location.hash.match(/h=(\d+)/) || [])[1]);
     if (wanted && hotspots.has(wanted)) select(wanted);
   } catch (err) {
     done();
