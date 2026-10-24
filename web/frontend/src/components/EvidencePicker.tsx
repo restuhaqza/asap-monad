@@ -15,6 +15,7 @@
 
 import { useEffect, useState } from 'react';
 
+import { canAfford } from '../lib/balance';
 import { compressImage } from '../lib/compress';
 import { errorMessage } from '../lib/errors';
 import { MAX_UPLOAD_BYTES, uploadEvidenceBlob } from '../lib/evidence-client';
@@ -24,6 +25,8 @@ interface EvidencePickerProps {
   bondWei: bigint;
   /** False until `requiredBond` has been read successfully for this bounty. */
   bondReady: boolean;
+  /** Wallet balance in wei; null while unknown. */
+  balanceWei?: bigint | null;
   /** True when no wallet is connected. */
   disabled: boolean;
   onClaim: (evidence: string) => void;
@@ -34,7 +37,13 @@ const HINT = 'Evidence must be captured within 25 km of the hotspot and after th
 /** Formats a photo compress can read but did not have to re-encode. */
 const READABLE_TYPES = /^image\/(jpeg|jpg|png|webp)$/i;
 
-export function EvidencePicker({ bondWei, bondReady, disabled, onClaim }: EvidencePickerProps) {
+export function EvidencePicker({
+  bondWei,
+  bondReady,
+  balanceWei = null,
+  disabled,
+  onClaim,
+}: EvidencePickerProps) {
   const [evidence, setEvidence] = useState('');
   const [manual, setManual] = useState('');
   const [state, setState] = useState(HINT);
@@ -63,7 +72,7 @@ export function EvidencePicker({ bondWei, bondReady, disabled, onClaim }: Eviden
         // claim; if it did not, say what to do about it.
         if (!READABLE_TYPES.test(file.type)) {
           throw new Error(
-            `${file.type || 'this format'} cannot be read by the browser — take the photo with the camera, or paste a URL`,
+            `${file.type || 'this format'} cannot be read by this browser — use Take photo`,
           );
         }
         if (file.size > MAX_UPLOAD_BYTES) {
@@ -96,7 +105,9 @@ export function EvidencePicker({ bondWei, bondReady, disabled, onClaim }: Eviden
 
   const reference = evidence || manual.trim();
   // `bondReady` matters: sending a claim with an unknown bond reverts on-chain.
-  const canClaim = Boolean(reference) && !disabled && !busy && bondReady;
+  // So does a bond the wallet cannot cover.
+  const affordable = canAfford(balanceWei, bondWei);
+  const canClaim = Boolean(reference) && !disabled && !busy && bondReady && affordable;
 
   return (
     <div>
@@ -146,9 +157,11 @@ export function EvidencePicker({ bondWei, bondReady, disabled, onClaim }: Eviden
       </div>
 
       <div className="hint">
-        {bondReady
-          ? 'Add evidence first — a photo or a URL. Bond ≥ pool is slashed if two verifiers reject.'
-          : 'Reading the required bond from the contract…'}
+        {!bondReady
+          ? 'Reading the required bond from the contract…'
+          : !affordable
+            ? `Not enough MON for the bond — you need ${formatMon(bondWei)} MON.`
+            : 'Add evidence first — a photo or a URL. Bond ≥ pool is slashed if two verifiers reject.'}
       </div>
     </div>
   );

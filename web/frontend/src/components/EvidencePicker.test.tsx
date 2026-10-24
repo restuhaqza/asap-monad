@@ -8,7 +8,10 @@ const { compressImageMock, uploadEvidenceBlobMock } = vi.hoisted(() => ({
 }));
 
 vi.mock('../lib/compress', () => ({ compressImage: compressImageMock }));
-vi.mock('../lib/evidence-client', () => ({ uploadEvidenceBlob: uploadEvidenceBlobMock }));
+vi.mock('../lib/evidence-client', () => ({
+  uploadEvidenceBlob: uploadEvidenceBlobMock,
+  MAX_UPLOAD_BYTES: 8_000_000,
+}));
 
 import { EvidencePicker } from './EvidencePicker';
 
@@ -23,6 +26,7 @@ const revokeObjectURL = vi.fn();
 interface Props {
   bondWei: bigint;
   bondReady: boolean;
+  balanceWei?: bigint | null;
   disabled: boolean;
   onClaim: (evidence: string) => void;
 }
@@ -32,6 +36,7 @@ function setup(overrides: Partial<Props> = {}) {
   const props: Props = {
     bondWei: BOND,
     bondReady: true,
+    balanceWei: 1_000n * 10n ** 18n,
     disabled: false,
     onClaim,
     ...overrides,
@@ -134,7 +139,7 @@ describe('EvidencePicker — file inputs', () => {
     const { container } = setup();
 
     for (const input of fileInputs(container)) {
-      expect(input.className).toContain('sr-input');
+      expect(input.className).toContain('ev-input');
       expect(input).not.toHaveAttribute('hidden');
       expect(input.hidden).toBe(false);
       expect(input.style.display).not.toBe('none');
@@ -143,15 +148,19 @@ describe('EvidencePicker — file inputs', () => {
     }
   });
 
-  it('opens the picker when "Choose file" is pressed', async () => {
-    const user = userEvent.setup();
+  it('nests the native input inside its control, so no script has to open the picker', () => {
     const { container } = setup();
-    const [picker] = fileInputs(container);
-    const click = vi.spyOn(picker, 'click');
+    const [picker, camera] = fileInputs(container);
 
-    await user.click(screen.getByRole('button', { name: /choose file/i }));
-
-    expect(click).toHaveBeenCalledTimes(1);
+    // A programmatic `input.click()` on a visually hidden input is ignored by
+    // Safari and several WebViews. The input must BE the click target instead.
+    for (const input of [picker!, camera!]) {
+      const label = input.closest('label');
+      expect(label).not.toBeNull();
+      expect(label).toHaveClass('ev-btn');
+      expect(label).toContainElement(input);
+      expect(window.getComputedStyle(input).pointerEvents).not.toBe('none');
+    }
   });
 });
 
@@ -223,20 +232,35 @@ describe('EvidencePicker — upload failure', () => {
     expect(onClaim).not.toHaveBeenCalled();
   });
 
-  it('shows the error when the image cannot be compressed', async () => {
-    compressImageMock.mockRejectedValue(new Error('cannot read image'));
+  it('sends the original file when compression fails but the format is readable', async () => {
+    compressImageMock.mockRejectedValue(new Error('canvas exhausted'));
+    uploadEvidenceBlobMock.mockResolvedValue({ url: UPLOAD_URL, sha256: SHA256, bytes: 9 });
+
+    const { container } = setup();
+    const original = new File([new Uint8Array([9])], 'burn.png', { type: 'image/png' });
+    fireEvent.change(fileInputs(container)[0]!, { target: { files: [original] } });
+
+    await waitFor(() => {
+      expect(screen.getByText(`Stored · sha256 ${SHA256.slice(0, 12)}…`)).toBeInTheDocument();
+    });
+    // a phone photo the canvas could not decode must not block the claim
+    expect(uploadEvidenceBlobMock).toHaveBeenCalledWith(original);
+    expect(claimButton()).toBeEnabled();
+  });
+
+  it('explains an unreadable format instead of failing silently', async () => {
+    compressImageMock.mockRejectedValue(new Error('decode failed'));
 
     const { container } = setup();
     fireEvent.change(fileInputs(container)[0]!, {
-      target: { files: [new File([new Uint8Array([9])], 'burn.png', { type: 'image/png' })] },
+      target: { files: [new File([new Uint8Array([9])], 'IMG_0001.HEIC', { type: 'image/heic' })] },
     });
 
     await waitFor(() => {
-      expect(
-        screen.getByText('Upload failed: cannot read image — paste a URL instead.'),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/image\/heic cannot be read by this browser/)).toBeInTheDocument();
     });
     expect(claimButton()).toBeDisabled();
+    expect(uploadEvidenceBlobMock).not.toHaveBeenCalled();
     expect(screen.queryByAltText('evidence preview')).not.toBeInTheDocument();
   });
 
@@ -278,5 +302,30 @@ describe('EvidencePicker — onClaim contract', () => {
 
     expect(onClaim).toHaveBeenCalledTimes(1);
     expect(onClaim).toHaveBeenCalledWith('ipfs://bafytrimmed');
+  });
+});
+
+
+describe('EvidencePicker — wallet balance', () => {
+  it('keeps the claim disabled when the wallet cannot cover the bond', async () => {
+    const user = userEvent.setup();
+    const { onClaim } = setup({ balanceWei: 1n });
+
+    await user.type(screen.getByPlaceholderText(/paste an IPFS CID/i), 'ipfs://bafy-test');
+
+    expect(screen.getByText(/Not enough MON for the bond/i)).toBeInTheDocument();
+    expect(claimButton()).toBeDisabled();
+    fireEvent.click(claimButton());
+    expect(onClaim).not.toHaveBeenCalled();
+  });
+
+  it('allows the claim once the balance covers the bond', async () => {
+    const user = userEvent.setup();
+    setup({ balanceWei: BOND });
+
+    await user.type(screen.getByPlaceholderText(/paste an IPFS CID/i), 'ipfs://bafy-test');
+
+    expect(screen.queryByText(/Not enough MON/i)).not.toBeInTheDocument();
+    expect(claimButton()).toBeEnabled();
   });
 });

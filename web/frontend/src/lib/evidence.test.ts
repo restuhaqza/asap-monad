@@ -235,7 +235,7 @@ describe('uploadEvidence', () => {
     expect(put).not.toHaveBeenCalled();
   });
 
-  it('rejects a body over 3 MB with 413 and stores nothing', async () => {
+  it('rejects a body over the limit with 413 and stores nothing', async () => {
     const put = vi.fn(async () => undefined);
     const store: EvidenceStore = { put, get: async () => null };
 
@@ -245,11 +245,11 @@ describe('uploadEvidence', () => {
     );
 
     expect(response.status).toBe(413);
-    await expect(bodyOf(response)).resolves.toEqual({ error: 'too large, max 3MB' });
+    await expect(bodyOf(response)).resolves.toEqual({ error: 'too large, max 8MB' });
     expect(put).not.toHaveBeenCalled();
   });
 
-  it('accepts a body of exactly 3 MB', async () => {
+  it('accepts a body of exactly the limit', async () => {
     const store = createMemoryEvidenceStore();
     const bytes = new Uint8Array(MAX_EVIDENCE_BYTES);
 
