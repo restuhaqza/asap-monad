@@ -12,6 +12,12 @@ contracts/broadcast/
 .env
 .env.*
 !.env.example
+!.env.testnet
+!.env.mainnet
+
+# deploy artifacts (addresses are also written into .env.mainnet)
+.mainnet-registry
+.mainnet-bounty
 
 # os
 .DS_Store

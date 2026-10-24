@@ -5,13 +5,22 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "predev": "npm run whitepaper",
     "build": "tsc -b && vite build",
+    "prebuild": "npm run whitepaper",
+    "whitepaper": "node scripts/whitepaper.mjs",
     "preview": "vite preview",
     "check": "tsc -b --noEmit",
     "cf:dev": "wrangler dev",
     "cf:deploy": "wrangler deploy",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "build:testnet": "tsc -b && vite build --mode testnet --outDir dist",
+    "build:mainnet": "tsc -b && vite build --mode mainnet --outDir dist-mainnet",
+    "prebuild:testnet": "npm run whitepaper",
+    "prebuild:mainnet": "npm run whitepaper",
+    "cf:deploy:testnet": "wrangler deploy -c wrangler.testnet.jsonc",
+    "cf:deploy:mainnet": "wrangler deploy -c wrangler.mainnet.jsonc"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

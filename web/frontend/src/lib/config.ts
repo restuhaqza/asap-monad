@@ -1,10 +1,20 @@
 /**
- * Chain, deployment and UI config. Values mirror the live build in
- * `web/frontend` (canonical host: https://asapmonad.web.id); nothing here reads
- * from the environment so the static Worker bundle stays reproducible.
+ * Chain, deployment and UI config.
+ *
+ * The app ships twice from one source tree: a testnet build at
+ * `testnet.asapmonad.web.id` and a mainnet build at `asapmonad.web.id`. The
+ * difference is baked in at build time (`.env.testnet` / `.env.mainnet`) so the
+ * bundle stays static and reproducible — no runtime chain switching, no chance
+ * of a mainnet page reading a testnet address because a query string said so.
  */
 
-export const CHAIN = {
+export type NetworkKey = 'testnet' | 'mainnet';
+
+const REQUESTED = import.meta.env.VITE_NETWORK;
+export const NETWORK: NetworkKey = REQUESTED === 'mainnet' ? 'mainnet' : 'testnet';
+export const IS_MAINNET = NETWORK === 'mainnet';
+
+const TESTNET_CHAIN = {
   id: 10143,
   name: 'Monad Testnet',
   nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
@@ -12,17 +22,26 @@ export const CHAIN = {
   blockExplorers: { default: { name: 'Monadscan', url: 'https://testnet.monadscan.com' } },
 } as const;
 
+const MAINNET_CHAIN = {
+  id: 143,
+  name: 'Monad',
+  nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
+  rpcUrls: { default: { http: ['https://rpc.monad.xyz'] } },
+  blockExplorers: { default: { name: 'Monadscan', url: 'https://monadscan.com' } },
+} as const;
+
+export const CHAIN = IS_MAINNET ? MAINNET_CHAIN : TESTNET_CHAIN;
 export const RPC_URL = CHAIN.rpcUrls.default.http[0];
 
 /**
- * Read-only fallbacks. Both answer chain 10143 and return byte-identical results
- * for `getHotspot`; the primary RPC rejects bursts with 429, and a demo cannot
- * afford an empty map because one endpoint got moody.
+ * Read-only fallbacks. On testnet both answer chain 10143 and return
+ * byte-identical results for `getHotspot`; the primary RPC rejects bursts with
+ * 429, and a demo cannot afford an empty map because one endpoint got moody.
+ * Mainnet has no measured fallback yet, so it uses the official node alone.
  */
-export const RPC_FALLBACKS = [
-  'https://monad-testnet.drpc.org',
-  'https://rpc.ankr.com/monad_testnet',
-];
+export const RPC_FALLBACKS = IS_MAINNET
+  ? []
+  : ['https://monad-testnet.drpc.org', 'https://rpc.ankr.com/monad_testnet'];
 
 /**
  * Order matters and was measured, not guessed: in 20 concurrent calls the
@@ -30,17 +49,31 @@ export const RPC_FALLBACKS = [
  * to ankr first, keep the official node as the trusted second opinion, and use
  * drpc only as a last resort.
  */
-export const RPC_READ_URLS = [
-  'https://rpc.ankr.com/monad_testnet',
-  RPC_URL,
-  ...RPC_FALLBACKS,
-];
+export const RPC_READ_URLS = IS_MAINNET
+  ? [RPC_URL]
+  : ['https://rpc.ankr.com/monad_testnet', RPC_URL, ...RPC_FALLBACKS];
 export const EXPLORER = CHAIN.blockExplorers.default.url;
 
-/** HotspotRegistry — deployed 24 Oct 2026. */
-export const REGISTRY = '0xe691172812761cd8c1efcdbeb89192b35cacb9e7' as const;
-/** FireBounty — deployed 24 Oct 2026. */
-export const BOUNTY = '0x6ec281aac8f6bec24ba84c56800879b66c13097a' as const;
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
+/** A build with a malformed or missing address must not silently ship. */
+function address(value: string | undefined, fallback: string): `0x${string}` {
+  if (value && /^0x[0-9a-fA-F]{40}$/.test(value)) return value as `0x${string}`;
+  return fallback as `0x${string}`;
+}
+
+/** HotspotRegistry — testnet deployed 24 Oct 2026. */
+export const REGISTRY = IS_MAINNET
+  ? address(import.meta.env.VITE_REGISTRY, ZERO_ADDRESS)
+  : '0xe691172812761cd8c1efcdbeb89192b35cacb9e7';
+
+/** FireBounty — testnet deployed 24 Oct 2026. */
+export const BOUNTY = IS_MAINNET
+  ? address(import.meta.env.VITE_BOUNTY, ZERO_ADDRESS)
+  : '0x6ec281aac8f6bec24ba84c56800879b66c13097a';
+
+/** False on a mainnet build whose addresses were never filled in. */
+export const CONTRACTS_DEPLOYED = REGISTRY !== ZERO_ADDRESS && BOUNTY !== ZERO_ADDRESS;
 
 /** On-chain Status enum mapped to the UI. Index === enum value. */
 export const STATUS_COLORS = ['#5b5473', '#f5a524', '#5b9dff', '#3dd68c', '#ff5c5c'] as const;

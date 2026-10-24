@@ -50,12 +50,25 @@ forge script script/Deploy.s.sol --rpc-url monad_mainnet \
 cd web/frontend
 npm install
 npm run dev          # http://localhost:5173 — app plus a dev evidence endpoint
-npm run build        # typecheck, then bundle to dist/
-npm test             # 209 Vitest tests
-npx wrangler deploy  # Cloudflare Worker: static assets + /api/evidence
+npm run build:testnet   # typecheck, then bundle chain-10143 build to dist/
+npm run build:mainnet   # same source, chain-143 build to dist-mainnet/
+npm test                # 209 Vitest tests
+npm run cf:deploy:testnet   # -> testnet.asapmonad.web.id
+npm run cf:deploy:mainnet   # -> asapmonad.web.id (root)
 ```
 
-Landing: **https://asapmonad.web.id** · App: **https://asapmonad.web.id/portal** · chain `10143`
+The chain is chosen at **build time** (`.env.testnet` / `.env.mainnet`), not at
+runtime: one source tree, two bundles, two Workers on one R2 bucket. A page can
+never read a testnet address because a query string or a hostname said so.
+
+| Host | Build | Chain |
+|---|---|---|
+| **https://testnet.asapmonad.web.id** | `build:testnet` | `10143` |
+| **https://asapmonad.web.id** (root) | `build:mainnet` | `143` — pending funding, currently serving the testnet bundle |
+
+App at `/portal` on both hosts, landing at `/`. `scripts/deploy-mainnet.sh`
+does the whole mainnet run — deploy, publish hotspots, write `.env.mainnet`,
+build, deploy — and refuses to start while the deployer holds 0 MON on 143.
 
 **Live data:**
 
@@ -65,7 +78,14 @@ python3 scripts/fetch-hotspots.py --limit 200
 
 ## Deployment
 
-**Monad Testnet** — chain `10143` · [explorer](https://testnet.monadscan.com)
+### Hosts
+
+| Host | Bundle | State |
+|---|---|---|
+| [testnet.asapmonad.web.id](https://testnet.asapmonad.web.id/portal) | chain `10143` | **live** — 80 hotspots, 4 bounties |
+| [asapmonad.web.id](https://asapmonad.web.id/portal) | chain `143` | waiting on mainnet MON; serves the testnet bundle until then |
+
+### Monad Testnet — chain `10143` · [explorer](https://testnet.monadscan.com)
 
 | Contract | Address | Source |
 |---|---|---|

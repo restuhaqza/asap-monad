@@ -1,0 +1,25 @@
+{
+  // Mainnet deployment: https://asapmonad.web.id (the root domain).
+  // Deploys the same worker name as the original host so the root domain is
+  // replaced, not duplicated; `wrangler deploy -c wrangler.jsonc` puts the
+  // testnet bundle back if this ever needs to be undone.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "asap-monad-spa",
+  "main": "worker.ts",
+  "compatibility_date": "2026-09-08",
+  "assets": {
+    "directory": "./dist-mainnet",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/evidence/*"]
+  },
+  "r2_buckets": [
+    {
+      "binding": "EVIDENCE",
+      "bucket_name": "asap-evidence"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "routes": [{ "pattern": "asapmonad.web.id", "custom_domain": true }]
+}
