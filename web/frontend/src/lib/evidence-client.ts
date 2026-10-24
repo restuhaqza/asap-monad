@@ -1,5 +1,11 @@
 /** Browser side of the evidence API — POST the JPEG, get an absolute URL back. */
 
+/**
+ * Largest photo the worker accepts. Kept here so the picker can fall back to
+ * sending an original file without importing the server-side module.
+ */
+export const MAX_UPLOAD_BYTES = 8_000_000;
+
 export interface EvidenceUpload {
   /** Absolute URL, safe to store on-chain as the evidence reference. */
   url: string;

@@ -1,7 +1,7 @@
 /**
- * Chain, deployment and UI config. Values mirror `web/app/config.js` (the vanilla
- * build that is currently live); nothing here reads from the environment so the
- * static Worker bundle stays reproducible.
+ * Chain, deployment and UI config. Values mirror the live build in
+ * `web/frontend` (canonical host: https://asapmonad.web.id); nothing here reads
+ * from the environment so the static Worker bundle stays reproducible.
  */
 
 export const CHAIN = {

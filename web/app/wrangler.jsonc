@@ -17,10 +17,13 @@
       "bucket_name": "asap-evidence"
     }
   ],
-  "routes": [
-    {
-      "pattern": "asap-monad.x0r.my.id",
-      "custom_domain": true
-    }
-  ]
+  // Retired 14:35 WIB: the React app in ../frontend is the only deployed build.
+  // This worker used to own asap-monad.x0r.my.id; that host now 301s to
+  // https://asapmonad.web.id (evidence URLs already written on-chain keep
+  // resolving). Kept as source only — do not redeploy without re-claiming a
+  // route, or it will take the legacy host back from the redirect.
+  // "routes": [
+  //   { "pattern": "asap-monad.x0r.my.id", "custom_domain": true }
+  // ]
+  "routes": []
 }

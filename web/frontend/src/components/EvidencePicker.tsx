@@ -1,21 +1,23 @@
 /**
  * Evidence capture for a claim.
  *
- * Two explicit buttons — "Choose file" and "Take photo" — each programmatically
- * click their own visually-hidden `<input type="file">`. The inputs are NOT
- * `display:none`: some mobile browsers refuse to open a picker for those, so
- * they stay in the layout at 1×1 px with opacity 0 (`.sr-input`).
+ * Each control is a `<label>` with its own `<input type="file">` stretched over
+ * it at zero opacity. The click therefore lands on the native input itself —
+ * no `input.click()` call anywhere. That matters: Safari and several WebViews
+ * ignore a programmatic click on a visually hidden input, which is exactly how
+ * "Choose file does nothing" happened in the field.
  *
  * The claim button stays disabled until evidence actually exists (an uploaded
- * blob or a non-empty manual URL/CID). A previous build let a claim go through
- * with a placeholder string; that must never come back.
+ * blob or a non-empty manual URL/CID) and the required bond is known. A
+ * previous build let a claim through with a placeholder string; that must never
+ * come back.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { compressImage } from '../lib/compress';
 import { errorMessage } from '../lib/errors';
-import { uploadEvidenceBlob } from '../lib/evidence-client';
+import { MAX_UPLOAD_BYTES, uploadEvidenceBlob } from '../lib/evidence-client';
 import { formatKilobytes, formatMon, formatSha256Prefix } from '../lib/format';
 
 interface EvidencePickerProps {
@@ -29,10 +31,10 @@ interface EvidencePickerProps {
 
 const HINT = 'Evidence must be captured within 25 km of the hotspot and after the satellite pass.';
 
-export function EvidencePicker({ bondWei, bondReady, disabled, onClaim }: EvidencePickerProps) {
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const cameraInputRef = useRef<HTMLInputElement | null>(null);
+/** Formats a photo compress can read but did not have to re-encode. */
+const READABLE_TYPES = /^image\/(jpeg|jpg|png|webp)$/i;
 
+export function EvidencePicker({ bondWei, bondReady, disabled, onClaim }: EvidencePickerProps) {
   const [evidence, setEvidence] = useState('');
   const [manual, setManual] = useState('');
   const [state, setState] = useState(HINT);
@@ -51,9 +53,27 @@ export function EvidencePicker({ bondWei, bondReady, disabled, onClaim }: Eviden
     setBusy(true);
     setState('Compressing…');
     try {
-      const blob = await compressImage(file);
-      setPreviewUrl(URL.createObjectURL(blob));
+      let blob: Blob;
+      try {
+        blob = await compressImage(file);
+      } catch {
+        // Phones hand us formats a canvas cannot always decode (HEIC on Android)
+        // and very large images can exhaust the canvas. If the browser already
+        // gave us a supported type, send the original instead of blocking the
+        // claim; if it did not, say what to do about it.
+        if (!READABLE_TYPES.test(file.type)) {
+          throw new Error(
+            `${file.type || 'this format'} cannot be read by the browser — take the photo with the camera, or paste a URL`,
+          );
+        }
+        if (file.size > MAX_UPLOAD_BYTES) {
+          throw new Error(`the original is ${formatKilobytes(file.size)}, over the ${formatKilobytes(MAX_UPLOAD_BYTES)} limit`);
+        }
+        blob = file;
+        setState(`Sending the original (${formatKilobytes(file.size)})…`);
+      }
 
+      setPreviewUrl(URL.createObjectURL(blob));
       setState(`Uploading ${formatKilobytes(blob.size)}…`);
       const upload = await uploadEvidenceBlob(blob);
 
@@ -67,6 +87,13 @@ export function EvidencePicker({ bondWei, bondReady, disabled, onClaim }: Eviden
     }
   };
 
+  const onPick = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    const file = event.target.files?.[0];
+    // Reset first: picking the same file twice must fire `change` again.
+    event.target.value = '';
+    void handleFile(file);
+  };
+
   const reference = evidence || manual.trim();
   // `bondReady` matters: sending a claim with an unknown bond reverts on-chain.
   const canClaim = Boolean(reference) && !disabled && !busy && bondReady;
@@ -74,49 +101,22 @@ export function EvidencePicker({ bondWei, bondReady, disabled, onClaim }: Eviden
   return (
     <div>
       <div className="ev-row">
-        <button
-          type="button"
-          className="ev-btn"
-          onClick={() => fileInputRef.current?.click()}
-        >
+        <label className="ev-btn">
           <span className="ev-ico">＋</span> Choose file
-        </button>
-        <button
-          type="button"
-          className="ev-btn"
-          onClick={() => cameraInputRef.current?.click()}
-        >
-          <span className="ev-ico">◉</span> Take photo
-        </button>
-      </div>
+          <input type="file" accept="image/*" className="ev-input" onChange={onPick} />
+        </label>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="sr-input"
-        tabIndex={-1}
-        aria-hidden="true"
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-          event.target.value = '';
-          void handleFile(file);
-        }}
-      />
-      <input
-        ref={cameraInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="sr-input"
-        tabIndex={-1}
-        aria-hidden="true"
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-          event.target.value = '';
-          void handleFile(file);
-        }}
-      />
+        <label className="ev-btn">
+          <span className="ev-ico">◉</span> Take photo
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="ev-input"
+            onChange={onPick}
+          />
+        </label>
+      </div>
 
       {previewUrl ? <img className="ev-preview" src={previewUrl} alt="evidence preview" /> : null}
 

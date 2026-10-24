@@ -8,7 +8,7 @@
  * in-memory one, and tests pass their own.
  */
 
-export const MAX_EVIDENCE_BYTES = 3_000_000;
+export const MAX_EVIDENCE_BYTES = 8_000_000;
 
 /** Accepted upload types → file extension. */
 export const CONTENT_TYPE_EXT: Record<string, 'jpg' | 'png' | 'webp'> = {
@@ -76,7 +76,7 @@ function json(payload: unknown, status = 200): Response {
 
 /**
  * `POST /api/evidence` — raw image body, no multipart.
- * 415 unsupported type · 400 empty body · 413 over 3 MB · 200 `{ url, sha256, bytes }`.
+ * 415 unsupported type · 400 empty body · 413 over 8 MB · 200 `{ url, sha256, bytes }`.
  */
 export async function uploadEvidence(request: Request, store: EvidenceStore): Promise<Response> {
   const contentType = normalizeContentType(request.headers.get('content-type'));
@@ -86,7 +86,7 @@ export async function uploadEvidence(request: Request, store: EvidenceStore): Pr
 
   const bytes = await request.arrayBuffer();
   if (bytes.byteLength === 0) return json({ error: 'empty body' }, 400);
-  if (bytes.byteLength > MAX_EVIDENCE_BYTES) return json({ error: 'too large, max 3MB' }, 413);
+  if (bytes.byteLength > MAX_EVIDENCE_BYTES) return json({ error: 'too large, max 8MB' }, 413);
 
   const sha256 = await sha256Hex(bytes);
   const key = `${sha256}.${contentTypeToExt(contentType)}`;
