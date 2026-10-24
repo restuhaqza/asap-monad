@@ -294,10 +294,10 @@ contract FireBounty {
         if (b.status == Status.Open) {
             if (block.timestamp <= b.deadline) revert PastDeadline();
             b.status = Status.Expired;
-            uint96 refund = b.pool;
+            uint96 refundOpen = b.pool;
             b.pool = 0;
-            _send(b.backer, refund);
-            emit BountyExpired(bountyId, b.hotspotId, refund);
+            _send(b.backer, refundOpen);
+            emit BountyExpired(bountyId, b.hotspotId, refundOpen);
             return;
         }
 
@@ -308,12 +308,12 @@ contract FireBounty {
         uint96 bondBack = c.bond;
         c.bond = 0;
         b.status = Status.Expired;
-        uint96 refund = b.pool;
+        uint96 refundClaimed = b.pool;
         b.pool = 0;
 
         _send(c.responder, bondBack); // do not punish the responder for verifier inaction
-        _send(b.backer, refund);
-        emit BountyExpired(bountyId, b.hotspotId, refund);
+        _send(b.backer, refundClaimed);
+        emit BountyExpired(bountyId, b.hotspotId, refundClaimed);
     }
 
     // ---------------------------------------------------------------------
