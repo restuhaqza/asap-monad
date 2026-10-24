@@ -8,6 +8,8 @@ ASAP is the layer between the satellite and the shovel. A hotspot opens a bounty
 
 ---
 
+**Demo video:** [`docs/asap-demo-30s.mp4`](docs/asap-demo-30s.mp4) — 30 s, 1920×1080, narrated, built from screenshots of the live app captured at 2× on 24 Oct 2026. Nothing in it is a mockup; the only drawn elements are the two amber boxes and the `bond ≥ pool` label on the real bounty panel.
+
 ## What's in this repo
 
 | Path | What it is |
@@ -20,6 +22,7 @@ ASAP is the layer between the satellite and the shovel. A hotspot opens a bounty
 | [`scripts/fetch-hotspots.py`](scripts/fetch-hotspots.py) | Pulls live NASA FIRMS data, writes the fixture, prints the `commitBatch` command |
 | [`scripts/wallet-tui.sh`](scripts/wallet-tui.sh) | Dev tool: interactive terminal wallet — balance, send MON, switch testnet/mainnet, keystore or in-memory key |
 | [`web/data/hotspots.json`](web/data/hotspots.json) | Generated hotspot fixture used by the app and the pusher |
+| [`docs/asap-demo-30s.mp4`](docs/asap-demo-30s.mp4) | 30 s demo cut: the gap, the bounty, the payout |
 
 ## Quickstart
 
@@ -97,6 +100,7 @@ Verification is an **exact match** on both contracts (compiler `0.8.24`, optimiz
 | Mainnet deploy + verification | ⬜ before 16:30 |
 | Contract addresses in README | ✅ |
 | Public live URL | ✅ custom domain on Cloudflare |
+| 30 s demo video | ✅ `docs/asap-demo-30s.mp4` |
 
 ## Honest limitations
 
