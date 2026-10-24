@@ -232,6 +232,14 @@ describe('DetailPanel — status Verified', () => {
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^approve/i })).not.toBeInTheDocument();
   });
+
+  it('says the money moved instead of showing an empty escrow', () => {
+    setup({ bountyValue: bounty({ status: STATUS_VERIFIED, activeClaim: 7, pool: 0n }) });
+
+    expect(screen.getByText('Bounty pool').nextElementSibling).toHaveTextContent('paid out');
+    expect(screen.getByText(/the responder was paid on-chain/)).toBeInTheDocument();
+    expect(screen.getByText(/returned with the payout/)).toBeInTheDocument();
+  });
 });
 
 describe('DetailPanel — status Expired', () => {
@@ -242,6 +250,8 @@ describe('DetailPanel — status Expired', () => {
     expect(
       screen.getByText(/Nobody answered this fire before the deadline\./),
     ).toBeInTheDocument();
+    expect(screen.getByText('Bounty pool').nextElementSibling).toHaveTextContent('refunded');
+    expect(screen.getByText(/returned to the backer/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^claim/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^approve/i })).not.toBeInTheDocument();
   });

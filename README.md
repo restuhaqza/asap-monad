@@ -107,6 +107,18 @@ Deploy transactions: [`0x60e378aa…c6ace3`](https://testnet.monadscan.com/tx/0x
 
 Mainnet deploy transactions: [`0x60e378aa…c6ace3`](https://monadscan.com/tx/0x60e378aa29022180b28349a2e67c36b035050b945e0ed60362ad04adf0c6ace3) · [`0xf24c8046…af6b0`](https://monadscan.com/tx/0xf24c804655cb4859cc4e835dc19b68aa9652489ceee860856921ddc4a5afc6b0)
 
+**A bounty was answered on mainnet, with real MON, before submission** — the whole lifecycle, six transactions:
+
+| Step | Transaction |
+|---|---|
+| Fund verifiers B and C (gas only) | [`0x8dfb8697`](https://monadscan.com/tx/0x8dfb8697c4c24bc170ad84b2951e8197e932faacf139e96c9f01389ae0112061) · [`0x319a7931`](https://monadscan.com/tx/0x319a793111bf705e6638bf92660eb56a94cb6ed974eab592db41d832bbc982db) |
+| Whitelist both verifiers | [`0x5abb1090`](https://monadscan.com/tx/0x5abb1090a22cd923aa924e648a18d067a30721dc0ae8e9fc15df3039b12f9db6) · [`0xeb202128`](https://monadscan.com/tx/0xeb202128270870b970b86a62b1e9c1a372439b38114de44c6cd7f4ae91d7385a) |
+| Open bounty #1 on hotspot 3, 0.05 MON, 6 h | [`0xa316cf0c`](https://monadscan.com/tx/0xa316cf0c45f98746062baf49a54c6ef4fc49ed950ed294dda704ea2bef1c6614) |
+| Claim with a 0.05 MON bond, 0 m from the hotspot | [`0x4427aec c`](https://monadscan.com/tx/0x4427aecc977c281719f7f2b4529f3be91353241b355a93edcf47bd3e99f63019) |
+| Two verifier approvals → payout in the same block | [`0xee754ba5`](https://monadscan.com/tx/0xee754ba5fa7dff03ee4b77848cae1317dbcb78de376b4b33a22c8ad414047439) · [`0x3265ae51`](https://monadscan.com/tx/0x3265ae5193dae64ff8e5659a89ac5a143df7da65e33f3ac26ecb70cfbbc22d15) |
+
+Open [hotspot #3 on the mainnet app](https://asapmonad.web.id/portal#h=3) and the panel shows the verdict, the responder, the distance (0 m), the approval count (2 of 2) and the evidence hash — read back from the chain, not from a mock.
+
 ## How it works
 
 1. An oracle (anyone, whitelisted) commits `keccak256` of the raw FIRMS CSV, then publishes the parsed rows. Anyone can re-download the file and prove it wasn't tampered with.
@@ -134,7 +146,7 @@ Mainnet deploy transactions: [`0x60e378aa…c6ace3`](https://monadscan.com/tx/0x
 | Tests | ✅ 7/7 passing |
 | Hotspot data pipeline | ✅ live NASA FIRMS, no API key |
 | Hotspots on-chain | ✅ 180 on testnet · 191 on mainnet, each anchored to the FIRMS CSV hash |
-| End-to-end settlement | ✅ bounty #1 verified, responder paid |
+| End-to-end settlement | ✅ bounty #1 verified on testnet · a second one settled on **mainnet** with real MON |
 | Deployed to Monad testnet | ✅ both contracts, exact-match verified |
 | Pusher script writing hotspots on-chain | ✅ 180 hotspots, batch `0x89eb56…` |
 | Web app wired to the chain | ✅ [mainnet](https://asapmonad.web.id/portal) and [testnet](https://testnet.asapmonad.web.id/portal) — React 19 + Vite, same source, chain chosen at build time |

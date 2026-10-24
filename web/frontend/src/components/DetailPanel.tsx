@@ -16,7 +16,7 @@ import {
   STATUS_VERIFIED,
   statusColor,
 } from '../lib/bounties';
-import { BOUNTY, CHAIN, EXPLORER, REGISTRY } from '../lib/config';
+import { BOUNTY, CHAIN, EXPLORER, REGISTRY, STATUS_EXPIRED } from '../lib/config';
 import { canAfford } from '../lib/balance';
 import {
   confidenceLabel,
@@ -101,6 +101,24 @@ export function DetailPanel({
   const claim = useClaim(bounty && status === STATUS_VERIFIED ? bounty.activeClaim : null);
   const pool = bounty?.pool ?? 0n;
   const place = nearestPlace(hotspot.lat, hotspot.lon);
+  // A settled escrow holds zero by design, so the money cards must say what
+  // happened to it instead of reporting "nobody has funded this fire yet".
+  const paidOut = status === STATUS_VERIFIED;
+  const refunded = status === STATUS_EXPIRED;
+  const poolValue = paidOut ? 'paid out' : refunded ? 'refunded' : formatMonOrDash(pool);
+  const poolNote = paidOut
+    ? 'the responder was paid on-chain'
+    : refunded
+      ? 'returned to the backer'
+      : pool > 0n
+        ? 'paid to whoever proves it'
+        : 'nobody has funded this fire yet';
+  const bondValue = paidOut || refunded ? '—' : bounty && bondReady ? `${formatMon(bond)} MON` : '—';
+  const bondNote = paidOut
+    ? 'returned with the payout'
+    : refunded
+      ? 'no claim was ever filed'
+      : 'back if approved · lost if false';
   const connectedHint = account ? null : (
     <div className="hint">Connect a wallet on {CHAIN.name} to fund, claim or attest.</div>
   );
@@ -148,13 +166,13 @@ export function DetailPanel({
       <div className="kv">
         <div>
           <span>Bounty pool</span>
-          <b className="mono">{formatMonOrDash(pool)}</b>
-          <em>{pool > 0n ? 'paid to whoever proves it' : 'nobody has funded this fire yet'}</em>
+          <b className="mono">{poolValue}</b>
+          <em>{poolNote}</em>
         </div>
         <div>
           <span>Bond required</span>
-          <b className="mono">{bounty && bondReady ? `${formatMon(bond)} MON` : '—'}</b>
-          <em>back if approved · lost if false</em>
+          <b className="mono">{bondValue}</b>
+          <em>{bondNote}</em>
         </div>
       </div>
 
