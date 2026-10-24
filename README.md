@@ -44,6 +44,17 @@ forge script script/Deploy.s.sol --rpc-url monad_mainnet \
 python3 scripts/fetch-hotspots.py --limit 200
 ```
 
+## Deployment
+
+**Monad Testnet** — chain `10143` · [explorer](https://testnet.monadscan.com)
+
+| Contract | Address | Source |
+|---|---|---|
+| `HotspotRegistry` | [`0xe691172812761cd8c1efcdbeb89192b35cacb9e7`](https://testnet.monadscan.com/address/0xe691172812761cd8c1efcdbeb89192b35cacb9e7) | verified · [Sourcify](https://repo.sourcify.dev/10143/0xe691172812761cd8c1efcdbeb89192b35cacb9e7) |
+| `FireBounty` | [`0x6ec281aac8f6bec24ba84c56800879b66c13097a`](https://testnet.monadscan.com/address/0x6ec281aac8f6bec24ba84c56800879b66c13097a) | verified · [Sourcify](https://repo.sourcify.dev/10143/0x6ec281aac8f6bec24ba84c56800879b66c13097a) |
+
+Verification is an **exact match** on both contracts (compiler `0.8.24`, optimizer on, 200 runs, `shanghai`). `FireBounty` was deployed with the registry address as its constructor argument. Oracle deployer: `0x9EB20B1420077de8b7e9572b9729b94090a5B8C8`, which is also a whitelisted verifier so the flow can be demonstrated end to end.
+
 ## How it works
 
 1. An oracle (anyone, whitelisted) commits `keccak256` of the raw FIRMS CSV, then publishes the parsed rows. Anyone can re-download the file and prove it wasn't tampered with.
@@ -68,11 +79,12 @@ python3 scripts/fetch-hotspots.py --limit 200
 | Contracts implemented | ✅ compile clean |
 | Tests | ✅ 7/7 passing |
 | Hotspot data pipeline | ✅ live NASA FIRMS, no API key |
-| Deployed to Monad testnet | ⬜ next |
+| Deployed to Monad testnet | ✅ both contracts, verified |
 | Pusher script writing hotspots on-chain | ⬜ next |
 | Web app wired to the chain | ⬜ next |
 | Mainnet deploy + verification | ⬜ before 16:30 |
-| README live URL + contract address | ⬜ fill after deploy |
+| Contract addresses in README | ✅ |
+| Public live URL | ⬜ next |
 
 ## Honest limitations
 
