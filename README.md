@@ -38,6 +38,15 @@ forge script script/Deploy.s.sol --rpc-url monad_mainnet \
   --broadcast --private-key $PK
 ```
 
+**Web app:**
+
+```bash
+cd web/app && python3 -m http.server 4173     # local
+wrangler deploy                                # Cloudflare Workers + assets
+```
+
+Live: **https://asap-monad.x0r.my.id**
+
 **Live data:**
 
 ```bash
@@ -80,12 +89,13 @@ Verification is an **exact match** on both contracts (compiler `0.8.24`, optimiz
 | Tests | ✅ 7/7 passing |
 | Hotspot data pipeline | ✅ live NASA FIRMS, no API key |
 | Hotspots on-chain | ✅ 180 high-confidence detections |
+| End-to-end settlement | ✅ bounty #1 verified, responder paid |
 | Deployed to Monad testnet | ✅ both contracts, verified |
 | Pusher script writing hotspots on-chain | ✅ 180 hotspots, batch `0x89eb56…` |
-| Web app wired to the chain | ⬜ next |
+| Web app wired to the chain | ✅ [asap-monad.x0r.my.id](https://asap-monad.x0r.my.id) |
 | Mainnet deploy + verification | ⬜ before 16:30 |
 | Contract addresses in README | ✅ |
-| Public live URL | ⬜ next |
+| Public live URL | ✅ custom domain on Cloudflare |
 
 ## Honest limitations
 

@@ -17,3 +17,7 @@ contracts/broadcast/
 .DS_Store
 *.log
 
+
+# cloudflare
+.wrangler/
+node_modules/

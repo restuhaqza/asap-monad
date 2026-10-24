@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "asap-monad",
+  "compatibility_date": "2026-09-08",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "."
+  },
+  "routes": [
+    {
+      "pattern": "asap-monad.x0r.my.id",
+      "custom_domain": true
+    }
+  ]
+}
