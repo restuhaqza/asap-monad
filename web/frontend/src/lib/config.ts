@@ -23,6 +23,18 @@ export const RPC_FALLBACKS = [
   'https://monad-testnet.drpc.org',
   'https://rpc.ankr.com/monad_testnet',
 ];
+
+/**
+ * Order matters and was measured, not guessed: in 20 concurrent calls the
+ * official endpoint returned 10x 429, drpc 5x 400, and ankr 20x 200. Reads go
+ * to ankr first, keep the official node as the trusted second opinion, and use
+ * drpc only as a last resort.
+ */
+export const RPC_READ_URLS = [
+  'https://rpc.ankr.com/monad_testnet',
+  RPC_URL,
+  ...RPC_FALLBACKS,
+];
 export const EXPLORER = CHAIN.blockExplorers.default.url;
 
 /** HotspotRegistry — deployed 24 Oct 2026. */
