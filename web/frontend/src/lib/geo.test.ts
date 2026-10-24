@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { STATUS_EXPIRED } from './config';
-import { fromE6, markerFillOpacity, markerRadius, markerTooltip, toE6 } from './geo';
+import { fromE6, distanceMeters, formatDistance, markerFillOpacity, markerRadius, markerTooltip, toE6 } from './geo';
 
 describe('toE6', () => {
   it('scales decimal degrees to the on-chain int32 representation', () => {
@@ -41,6 +41,50 @@ describe('fromE6', () => {
     for (const degrees of samples) {
       expect(fromE6(toE6(degrees))).toBe(degrees);
     }
+  });
+});
+
+describe('distanceMeters', () => {
+  it('is zero for the same point', () => {
+    expect(distanceMeters(-2_123_400, 113_567_800, -2_123_400, 113_567_800)).toBe(0);
+  });
+
+  it('matches the contract approximation: 1 degree of latitude is 111.32 km', () => {
+    expect(distanceMeters(0, 0, 1_000_000, 0)).toBeCloseTo(111_320, 6);
+    expect(distanceMeters(0, 0, 0, 1_000_000)).toBeCloseTo(111_320, 6);
+  });
+
+  it('is symmetric', () => {
+    const a = distanceMeters(-2_123_400, 113_567_800, -2_000_000, 113_400_000);
+    const b = distanceMeters(-2_000_000, 113_400_000, -2_123_400, 113_567_800);
+    expect(a).toBeCloseTo(b, 6);
+  });
+
+  it('reads claim #1 as zero metres from hotspot #1 — it was filed at the same coordinate', () => {
+    expect(distanceMeters(-1_423_340, 104_082_950, -1_423_340, 104_082_950)).toBe(0);
+  });
+
+  it('keeps a 0.1 degree offset inside the 25 km radius', () => {
+    // 0.1° ≈ 11.1 km, comfortably inside the contract's 25 km window.
+    expect(distanceMeters(-1_423_340, 104_082_950, -1_323_340, 104_082_950)).toBeLessThan(25_000);
+  });
+});
+
+describe('formatDistance', () => {
+  it('uses metres under a kilometre', () => {
+    expect(formatDistance(0)).toBe('0 m');
+    expect(formatDistance(340)).toBe('340 m');
+    expect(formatDistance(999.4)).toBe('999 m');
+  });
+
+  it('uses one decimal kilometre above it', () => {
+    expect(formatDistance(1000)).toBe('1.0 km');
+    expect(formatDistance(14_640)).toBe('14.6 km');
+  });
+
+  it('refuses to invent a distance', () => {
+    expect(formatDistance(Number.NaN)).toBe('—');
+    expect(formatDistance(-1)).toBe('—');
   });
 });
 

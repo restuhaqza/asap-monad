@@ -122,6 +122,9 @@ export default function App() {
                 key={selectedHotspot.id}
                 hotspot={selectedHotspot}
                 bounty={selectedBounty}
+                receipt={
+                  selectedBounty ? (actions.receipts[selectedBounty.bountyId] ?? null) : null
+                }
                 isVerifier={wallet.isVerifier}
                 account={wallet.account}
                 balanceWei={wallet.balance}
@@ -132,7 +135,7 @@ export default function App() {
                   void actions.claim(bountyId, evidence, latE6, lonE6, capturedAt, bondWei);
                 }}
                 onAttest={(claimId, approve) => {
-                  void actions.attest(claimId, approve);
+                  void actions.attest(claimId, approve, selectedBounty?.bountyId);
                 }}
                 onClose={() => setSelected(null)}
               />

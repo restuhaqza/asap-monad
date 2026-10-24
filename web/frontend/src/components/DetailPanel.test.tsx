@@ -2,13 +2,15 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { readRequiredBondMock, useRequiredBondMock } = vi.hoisted(() => ({
+const { readRequiredBondMock, useRequiredBondMock, useClaimMock } = vi.hoisted(() => ({
   readRequiredBondMock: vi.fn(),
   useRequiredBondMock: vi.fn(),
+  useClaimMock: vi.fn(),
 }));
 
 vi.mock('../lib/chain', () => ({ readRequiredBond: readRequiredBondMock }));
 vi.mock('../hooks/useRequiredBond', () => ({ useRequiredBond: useRequiredBondMock }));
+vi.mock('../hooks/useClaim', () => ({ useClaim: useClaimMock }));
 
 import { DetailPanel } from './DetailPanel';
 import { STATUS_CLAIMED, STATUS_OPEN, STATUS_VERIFIED } from '../lib/bounties';
@@ -81,6 +83,8 @@ function setup(
 
 beforeEach(() => {
   useRequiredBondMock.mockReset();
+  useClaimMock.mockReset();
+  useClaimMock.mockReturnValue(null);
   readRequiredBondMock.mockReset();
 });
 

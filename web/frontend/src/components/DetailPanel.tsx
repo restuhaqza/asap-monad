@@ -12,9 +12,11 @@ import { BOUNTY, EXPLORER, REGISTRY } from '../lib/config';
 import { canAfford } from '../lib/balance';
 import { formatCoords, formatFrp, formatMon, formatMonOrDash, formatTimeWIB, shortAddress } from '../lib/format';
 import { useRequiredBond } from '../hooks/useRequiredBond';
-import type { Bounty, Hotspot } from '../lib/types';
+import { useClaim } from '../hooks/useClaim';import type { Bounty, Hotspot } from '../lib/types';
+import type { SettlementReceipt } from '../lib/receipts';
 import { EvidencePicker } from './EvidencePicker';
 import { OpenBountyForm } from './OpenBountyForm';
+import { ReceiptCard } from './ReceiptCard';
 
 interface DetailPanelProps {
   hotspot: Hotspot;
@@ -23,6 +25,8 @@ interface DetailPanelProps {
   account: `0x${string}` | null;
   /** Wallet balance in wei, null until read. */
   balanceWei?: bigint | null;
+  /** Cached settlement for this bounty, when this browser saw the payout land. */
+  receipt?: SettlementReceipt | null;
   onOpenBounty: (hotspotId: number, ttlSeconds: number, amountWei: bigint) => void;
   onClaim: (
     bountyId: number,
@@ -43,6 +47,7 @@ export function DetailPanel({
   isVerifier,
   account,
   balanceWei = null,
+  receipt = null,
   onOpenBounty,
   onClaim,
   onAttest,
@@ -51,6 +56,7 @@ export function DetailPanel({
   const status = bounty?.status ?? NO_BOUNTY;
   const color = statusColor(status);
   const { bond, ready: bondReady } = useRequiredBond(bounty?.bountyId ?? null);
+  const claim = useClaim(bounty && status === STATUS_VERIFIED ? bounty.activeClaim : null);
   const pool = bounty?.pool ?? 0n;
   const connectedHint = account ? null : (
     <div className="hint">Connect a wallet on Monad Testnet to fund, claim or attest.</div>
@@ -171,7 +177,10 @@ export function DetailPanel({
         )}
 
         {bounty && status === STATUS_VERIFIED && (
-          <div className="hint">Claim verified. The responder has been paid on-chain.</div>
+          <>
+            <div className="hint">Claim verified. The responder has been paid on-chain.</div>
+            <ReceiptCard hotspot={hotspot} claim={claim} receipt={receipt} />
+          </>
         )}
 
         {bounty && status !== STATUS_OPEN && status !== STATUS_CLAIMED && status !== STATUS_VERIFIED && (

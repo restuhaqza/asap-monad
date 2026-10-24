@@ -14,6 +14,8 @@ text is pixel-exact and never model-garbled.
 | `logo-mark@2x.png` | 1024 × 1024 | 581 KB | Retina app icon, 1024 PWA icon, store listing |
 | `logo-lockup.png` | 1600 × 400 | 48 KB | Header/footer lockup, README banner, slide title bar; transparent background |
 | `hero-smoke.webp` | 1600 × 900 | 23.8 KB | Landing page background behind hero copy (dark, pre-vignetted) |
+| `hero-plume.webp` | 1600 × 750 | 13.9 KB | Wide hero plate: thin smoke over blackened peat, ember glow low right, left half quiet for the headline |
+| `last-mile.webp` | 1600 × 900 | 41.3 KB | "The detection layer exists, the last mile does not" — dirt track at dusk toward an orange smoke horizon |
 
 All PNG cards are 256-colour with Floyd–Steinberg dither to keep the link preview under 400 KB while
 leaving the type crisp — a truecolour 1200 × 630 render of the same layout is 492 KB.
@@ -73,6 +75,74 @@ taken from the square and Lanczos-upscaled (`og`: 1024 × 538 → 1200 × 630, 1
 Post-processing on the chosen frames: darkening scrims and vignette applied in CSS at compose time;
 the standalone `hero-smoke.webp` additionally got `eq=gamma=1.16:contrast=1.10:saturation=0.86` plus
 `vignette=angle=PI/5.6`, then `cwebp -q 78 -m 6 -sharp_yuv`.
+
+## Hero plates (`hero-plume`, `last-mile`)
+
+Same model, same palette, same rule: **no people, no vehicles, no text**. Both are landscape bands cut out of
+the square 1024 × 1024 output, so each prompt asked for the subject to sit in a horizontal band across the
+middle of the frame with disposable darkness above and below. Neither image is upscaled more than 1.56×.
+
+| File | Real pixels (`sips`) | Bytes | Band cropped from the 1024² source |
+|---|---|---|---|
+| `hero-plume.webp` | 1600 × 750 | 14,178 | 1024 × 480 at y=272 → 1.56× |
+| `last-mile.webp` | 1600 × 900 | 42,326 | 1024 × 576 at y=210 → 1.56× |
+
+### `hero-plume.webp` — 1600 × 750, 13.9 KB
+
+Source `hero-a`, prompt:
+
+> Cinematic wide photograph of a blackened peat field at night in Indonesia, thin dark smoke drifting low and
+> slow across the scorched bare ground, a faint ember glow with a few dim orange embers low on the right side
+> just below the centre of the frame, the entire left two-thirds almost pure black and silent with no detail at
+> all, the subject concentrated in one horizontal band across the middle of the frame with generous empty
+> darkness at the top and bottom edges, deep crushed shadows, single distant warm light source rim-lighting the
+> haze, high contrast editorial documentary photography, 35mm film grain, shallow depth of field, desaturated
+> teal-black shadows with warm ember orange highlights, no people, no vehicles, no text, no letters, no numbers,
+> no logos, no user interface
+
+```bash
+# 1024 × 480 band from the middle of the square → 1600 × 750 (1.56×, Lanczos)
+ffmpeg -i hero-a.webp -vf "crop=1024:480:0:272,scale=1600:750:flags=lanczos,\
+eq=gamma=1.05:contrast=1.09:saturation=0.92,vignette=angle=PI/6" hero-final.png
+cwebp -q 80 -m 6 -sharp_yuv hero-final.png -o hero-plume.webp
+```
+
+**Why 1600 × 750 and not 1920 × 900.** The native frame is 1024 wide. A 1920 px plate is a 1.88× upscale,
+which goes soft and mottled in the darks no matter the filter. 1600 × 750 is a 1.56× upscale — identical to
+the existing `hero-smoke.webp` — and stayed crisp at 1:1. A strict ≤1.35× ceiling would mean 1382 × 648; that
+is the fallback if the hero ever has to be full-bleed on a 1440p display.
+
+### `last-mile.webp` — 1600 × 900, 41.3 KB
+
+Source `last-a`, prompt:
+
+> Cinematic documentary photograph of an empty rutted dirt track at dusk curving away toward a distant low
+> horizon where a haze of orange smoke rises and fades into cold grey, deep teal-black shadowed foreground, no
+> people and no vehicles anywhere, the horizon sits slightly above the centre of the frame with the track
+> leading the eye from the lower middle, dark quiet negative space at the top and bottom edges, cold blue-teal
+> shadow against warm ember orange haze, high contrast, editorial documentary photography, 35mm film grain,
+> shallow depth of field, atmospheric smoke particles, no text, no letters, no numbers, no logos, no user
+> interface
+
+```bash
+# 1024 × 576 band → 1600 × 900 (1.56×, Lanczos), then deepen for overlaid copy
+ffmpeg -i last-a.webp -vf "crop=1024:576:0:210,scale=1600:900:flags=lanczos,\
+eq=contrast=1.06:saturation=0.96:gamma=0.97,vignette=angle=PI/5.2" last-v2.png
+cwebp -q 78 -m 6 -sharp_yuv last-v2.png -o last-mile.webp
+```
+
+### Rejected / spare generations
+
+- `hero-b` (spare, not shipped): "blackened peat field at night after the fire has passed, thin low horizontal
+  ribbons of grey smoke…, one very faint distant ember glow far off to the right". Beautifully empty and the
+  closest literal reading of the brief, but at 1600 px it reads as a near-black rectangle with a faint smear —
+  too little signal to earn the space. Kept in `workspace-research/marketing/brand/raw/` if a quieter plate is
+  ever wanted.
+- The first grade of `last-mile` (no vignette, `gamma=1.06`) lost the teal-black weight in the foreground and
+  the track stopped carrying the eye. The shipped version adds `gamma=0.97` + `vignette=angle=PI/5.2`.
+
+Both plates are background-only: no vignette or scrim is baked in beyond the above, so the page can layer
+`rgba(11,10,15,.55–.75)` on top and keep the type contrast it needs.
 
 ## Reproducing
 

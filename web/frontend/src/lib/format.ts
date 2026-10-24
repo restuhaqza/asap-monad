@@ -10,6 +10,13 @@ export function shortAddress(address?: string | null): string {
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
 }
 
+/** `0x8b1899e16e…438144` — a bytes32 evidence hash, shortened for the receipt. */
+export function shortHash(hash?: string | null, lead = 10, tail = 6): string {
+  if (!hash) return '';
+  if (hash.length <= lead + tail + 1) return hash;
+  return `${hash.slice(0, lead)}…${hash.slice(-tail)}`;
+}
+
 /**
  * Wei → MON with 3 decimals, e.g. `0.050`. Pure bigint maths so no precision
  * loss on large pools.

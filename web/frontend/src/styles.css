@@ -475,6 +475,81 @@ aside {
   font-size: 12.5px;
   font-weight: 600;
 }
+
+/* payment receipt — evidence, so it reads as a document: quiet, bordered, green */
+.receipt {
+  margin: 10px 0 4px;
+  border: 1px solid rgba(61, 214, 140, 0.26);
+  border-left: 2px solid var(--ok);
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(61, 214, 140, 0.07), transparent 65%);
+  padding: 10px 12px;
+}
+.receipt-head {
+  display: grid;
+  gap: 2px;
+}
+.receipt-eyebrow {
+  font-size: 8.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ok);
+}
+.receipt-head b {
+  font-size: 15px;
+  font-weight: 700;
+}
+.receipt-head span:last-child {
+  font-size: 9.5px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-top: 2px;
+}
+.receipt .kv {
+  margin: 10px 0 0;
+}
+.receipt .kv a {
+  color: #a99cf5;
+  text-decoration: none;
+}
+.receipt .kv a:hover {
+  text-decoration: underline;
+}
+.receipt-hash {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.receipt-copy {
+  flex: none;
+  font-family: inherit;
+  font-size: 8.5px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 1px 6px;
+  cursor: pointer;
+}
+.receipt-copy:hover {
+  color: var(--text);
+  border-color: #3a3350;
+}
+.receipt-foot {
+  margin-top: 8px;
+  font-size: 9px;
+  color: var(--muted);
+  line-height: 1.5;
+  word-break: break-all;
+}
+.receipt-foot a {
+  color: #a99cf5;
+  text-decoration: none;
+}
+.receipt-foot a:hover {
+  text-decoration: underline;
+}
 .pill {
   font-size: 9px;
   padding: 2px 8px;

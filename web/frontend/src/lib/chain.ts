@@ -22,7 +22,7 @@ import { BOUNTY, CHAIN, REGISTRY, RPC_READ_URLS } from './config';
 import { bountyAbi, registryAbi } from './contracts';
 import type { InjectedProvider } from './eip1193';
 import { fromE6 } from './geo';
-import type { Bounty, Hotspot } from './types';
+import type { Bounty, Claim, Hotspot } from './types';
 
 export const chain: Chain = CHAIN;
 
@@ -120,6 +120,36 @@ export function mapBounty(bountyId: number, raw: RawBounty): Bounty {
   };
 }
 
+type RawClaim = {
+  bountyId: bigint;
+  responder: `0x${string}`;
+  bond: bigint;
+  latE6: number;
+  lonE6: number;
+  capturedAt: number;
+  evidenceHash: `0x${string}`;
+  approvals: number;
+  rejections: number;
+  settled: boolean;
+};
+
+/** Claim struct → app shape. `evidenceHash` stays bytes32; the CID is in the event. */
+export function mapClaim(claimId: number, raw: RawClaim): Claim {
+  return {
+    claimId,
+    bountyId: Number(raw.bountyId),
+    responder: raw.responder,
+    bond: raw.bond,
+    latE6: raw.latE6,
+    lonE6: raw.lonE6,
+    capturedAt: Number(raw.capturedAt),
+    evidenceHash: raw.evidenceHash,
+    approvals: Number(raw.approvals),
+    rejections: Number(raw.rejections),
+    settled: raw.settled,
+  };
+}
+
 /* ── reads ──────────────────────────────────────────────────────────────── */
 
 export async function readHotspotCount(): Promise<number> {
@@ -169,6 +199,20 @@ export async function readBounty(id: number): Promise<Bounty | null> {
   // `pool === 0` means the id was never opened.
   if (raw.pool === 0n && raw.status === 0) return null;
   return mapBounty(id, raw);
+}
+
+export async function readClaim(claimId: number): Promise<Claim | null> {
+  const raw = await resilient(() =>
+    publicClient.readContract({
+      address: BOUNTY,
+      abi: bountyAbi,
+      functionName: 'getClaim',
+      args: [BigInt(claimId)],
+    }),
+  );
+  // `bountyId === 0` means the claim id was never submitted.
+  if (raw.bountyId === 0n) return null;
+  return mapClaim(claimId, raw);
 }
 
 export async function readRequiredBond(bountyId: number): Promise<bigint> {

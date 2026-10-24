@@ -29,3 +29,22 @@ export interface Bounty {
   /** 0 no bounty · 1 open · 2 claimed · 3 verified · 4 expired. */
   status: number;
 }
+
+export interface Claim {
+  claimId: number;
+  bountyId: number;
+  responder: `0x${string}`;
+  /** Bond in wei as submitted. The contract zeroes it on settlement. */
+  bond: bigint;
+  /** Latitude the responder proved they were at, scaled by 1e6. */
+  latE6: number;
+  /** Longitude the responder proved they were at, scaled by 1e6. */
+  lonE6: number;
+  /** Evidence capture time, unix seconds. */
+  capturedAt: number;
+  /** `keccak256` of the evidence string — the CID itself is only in the event. */
+  evidenceHash: `0x${string}`;
+  approvals: number;
+  rejections: number;
+  settled: boolean;
+}
