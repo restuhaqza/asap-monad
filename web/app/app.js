@@ -127,6 +127,7 @@ async function load() {
 
   // ids are ordered by FRP at publish time, so the first N are the biggest fires.
   const MAX_SHOWN = 80;
+  const wanted = Number((location.hash.match(/h=(\d+)/) || [])[1]);
   const ids = Array.from({ length: count }, (_, i) => i + 1)
     .filter((id) => !hotspots.has(id)).slice(0, MAX_SHOWN);
   const wave = 10;
@@ -152,6 +153,7 @@ async function load() {
     });
 
     if (i === 0) drawMarkers();
+    if (wanted && !selected && hotspots.has(wanted)) select(wanted);
     render();
     if (i + wave < ids.length) await sleep(1100);
   }
@@ -224,7 +226,9 @@ async function refreshBounties() {
         activeClaim: Number(d.activeClaim),
         status: Number(d.status),
       });
-      byHotspot.set(Number(d.hotspotId), id);
+      const prev = byHotspot.get(Number(d.hotspotId));
+      // one hotspot can collect several bounties; surface the biggest one
+      if (prev === undefined || d.pool > bounties.get(prev).pool) byHotspot.set(Number(d.hotspotId), id);
     });
     if (i + wave < ids.length) await sleep(850);
   }
@@ -355,13 +359,43 @@ async function openDetail(id) {
     ], parseEther($('f-amount').value || '0'));
   } else if (st === 1) {
     c.innerHTML = `
-      <div class="field"><input id="f-cid" placeholder="evidence reference — IPFS CID or URL" /></div>
+      <input id="f-file" type="file" accept="image/*" capture="environment" hidden />
+      <label for="f-file" class="ev-drop" id="f-drop">
+        <span class="ev-ico">◉</span>
+        <span><b>Take or choose a photo</b><br><small>compressed to 1280px · sha256 · stored on R2</small></span>
+      </label>
+      <img id="f-preview" class="ev-preview" hidden alt="evidence preview" />
+      <div class="hint" id="f-state">Evidence must be captured within 25 km of the hotspot and after the satellite pass.</div>
+      <div class="field"><input id="f-cid" placeholder="or paste an IPFS CID / URL" /></div>
       <div class="actions"><button class="btn btn-primary" id="f-claim" ${account ? '' : 'disabled'}>Claim · bond ${Number(formatEther(bond)).toFixed(3)} MON</button></div>
-      <div class="hint">Evidence must be captured within 25 km of the hotspot and after the satellite pass. Bond ≥ pool is slashed if two verifiers reject.</div>
+      <div class="hint">Bond ≥ pool is slashed if two verifiers reject. Two approvals settle the payout.</div>
       ${cta}`;
+
+    let evidenceRef = '';
+    const fileInput = $('f-file');
+    if (fileInput) {
+      fileInput.onchange = async () => {
+        const file = fileInput.files?.[0];
+        if (!file) return;
+        $('f-state').textContent = 'Compressing…';
+        try {
+          const blob = await compress(file);
+          $('f-preview').src = URL.createObjectURL(blob);
+          $('f-preview').hidden = false;
+          $('f-state').textContent = `Uploading ${(blob.size / 1024).toFixed(0)} KB…`;
+          const res = await uploadEvidence(blob);
+          evidenceRef = new URL(res.url, location.origin).href;
+          $('f-state').innerHTML = `Stored · <span class="mono">sha256 ${res.sha256.slice(0, 12)}…</span>`;
+          $('f-drop').classList.add('done');
+        } catch (err) {
+          evidenceRef = '';
+          $('f-state').textContent = 'Upload failed: ' + (err.message || err) + ' — you can paste a URL instead.';
+        }
+      };
+    }
     const btn = $('f-claim');
     if (btn) btn.onclick = () => tx('claim', [
-      BigInt(bid), $('f-cid').value.trim() || 'ipfs://unset', h.latE6, h.lonE6, BigInt(Math.floor(Date.now() / 1000)),
+      BigInt(bid), evidenceRef || $('f-cid').value.trim() || 'ipfs://unset', h.latE6, h.lonE6, BigInt(Math.floor(Date.now() / 1000)),
     ], bond);
   } else if (st === 2) {
     const claimId = b.activeClaim;
@@ -386,6 +420,36 @@ async function openDetail(id) {
     ? `Bounty <a href="${EXPLORER}/address/${BOUNTY}" target="_blank" rel="noreferrer">#${bid}</a>
        · backer ${short(b.backer)} · deadline ${timeWIB(b.deadline)}`
     : `Hotspot record <a href="${EXPLORER}/address/${REGISTRY}" target="_blank" rel="noreferrer">#${id}</a> · anchored to the FIRMS source file hash`;
+}
+
+
+/* ── evidence upload ─────────────────────────────────────────────────── */
+
+function compress(file, max = 1280, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, max / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('compress failed'))), 'image/jpeg', quality);
+    };
+    img.onerror = () => reject(new Error('cannot read image'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+async function uploadEvidence(blob) {
+  const res = await fetch('/api/evidence', {
+    method: 'POST',
+    headers: { 'content-type': 'image/jpeg' },
+    body: blob,
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || `upload failed (${res.status})`);
+  return body;
 }
 
 /* ── transactions ────────────────────────────────────────────────────── */
@@ -425,6 +489,7 @@ $('connect').onclick = () => connect().catch((e) => toast(short(e.message)));
     render();
     done();
     toast(`${hotspots.size} hotspots on-chain · ${bounties.size} bounties`);
+    if (wanted && hotspots.has(wanted)) select(wanted);
   } catch (err) {
     done();
     const detail = err.details || err.cause?.message || '';

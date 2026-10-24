@@ -128,6 +128,19 @@
   .trail a{color:#a99cf5;text-decoration:none}
   .trail a:hover{text-decoration:underline}
 
+
+  /* evidence upload */
+  .ev-drop{
+    display:flex;align-items:center;gap:11px;margin-top:8px;padding:11px 12px;cursor:pointer;
+    border:1px dashed var(--line);border-radius:9px;background:var(--ink);transition:.15s;
+  }
+  .ev-drop:hover{border-color:var(--monad)}
+  .ev-drop.done{border-style:solid;border-color:rgba(61,214,140,.45)}
+  .ev-ico{font-size:17px;color:var(--monad)}
+  .ev-drop b{font-size:11.5px;font-weight:600}
+  .ev-drop small{font-size:9.5px;color:var(--muted)}
+  .ev-preview{width:100%;max-height:150px;object-fit:cover;border-radius:9px;margin-top:8px;border:1px solid var(--line)}
+
   /* toast */
   #toast{
     position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:900;

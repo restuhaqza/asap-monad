@@ -1,13 +1,22 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "asap-monad",
+  "main": "worker.js",
   "compatibility_date": "2026-09-08",
   "observability": {
     "enabled": true
   },
   "assets": {
-    "directory": "."
+    "directory": ".",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/evidence/*"]
   },
+  "r2_buckets": [
+    {
+      "binding": "EVIDENCE",
+      "bucket_name": "asap-evidence"
+    }
+  ],
   "routes": [
     {
       "pattern": "asap-monad.x0r.my.id",
