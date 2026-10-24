@@ -45,7 +45,7 @@ echo "balance  : $(cast balance --ether "$ADDR" --rpc-url "$RPC") MON"
 echo "gas price: $(cast gas-price --rpc-url "$RPC") wei"
 
 echo
-echo "[1/4] deploying HotspotRegistry + FireBounty"
+echo "[1/5] deploying HotspotRegistry + FireBounty"
 cd "$ROOT/contracts"
 forge script script/Deploy.s.sol --rpc-url "$RPC" --broadcast --private-key "$PK"
 
@@ -67,7 +67,15 @@ echo "$REGISTRY" > "$ROOT/.mainnet-registry"
 echo "$BOUNTY" > "$ROOT/.mainnet-bounty"
 
 echo
-echo "[2/4] anchoring and publishing real FIRMS hotspots"
+echo "[2/5] verifying source on Sourcify (exact match; a failure here does not stop the deploy)"
+forge verify-contract "$REGISTRY" src/HotspotRegistry.sol:HotspotRegistry \
+  --chain 143 --verifier sourcify --rpc-url "$RPC" --watch || echo "      registry verification failed — check manually"
+forge verify-contract "$BOUNTY" src/FireBounty.sol:FireBounty \
+  --chain 143 --verifier sourcify --rpc-url "$RPC" --constructor-args "$(cast abi-encode 'f(address)' "$REGISTRY")" --watch \
+  || echo "      bounty verification failed — check manually"
+
+echo
+echo "[3/5] anchoring and publishing real FIRMS hotspots"
 python3 "$ROOT/scripts/push-hotspots.py" \
   --registry "$REGISTRY" \
   --key-file "$KEY_FILE" \
@@ -81,7 +89,7 @@ if [ "$CONTRACTS_ONLY" = "1" ]; then
 fi
 
 echo
-echo "[3/4] building the mainnet bundle"
+echo "[4/5] building the mainnet bundle"
 cd "$ROOT/web/frontend"
 cat > .env.mainnet <<EOF
 # Mainnet build. Written by scripts/deploy-mainnet.sh on $(date -u +%Y-%m-%dT%H:%M:%SZ).
@@ -92,7 +100,7 @@ EOF
 npm run build:mainnet
 
 echo
-echo "[4/4] deploying the root domain"
+echo "[5/5] deploying the root domain"
 npx wrangler deploy -c wrangler.mainnet.jsonc
 
 echo
