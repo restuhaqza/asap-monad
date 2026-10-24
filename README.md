@@ -21,7 +21,8 @@ ASAP is the layer between the satellite and the shovel. A hotspot opens a bounty
 | [`contracts/test/FireBounty.t.sol`](contracts/test/FireBounty.t.sol) | 7 tests: payout, bond, radius, timestamp, slash, expiry, self-attest |
 | [`scripts/fetch-hotspots.py`](scripts/fetch-hotspots.py) | Pulls live NASA FIRMS data, writes the fixture, prints the `commitBatch` command |
 | [`scripts/wallet-tui.sh`](scripts/wallet-tui.sh) | Dev tool: interactive terminal wallet — balance, send MON, switch testnet/mainnet, keystore or in-memory key |
-| [`web/data/hotspots.json`](web/data/hotspots.json) | Generated hotspot fixture used by the app and the pusher |
+| [`web/frontend/`](web/frontend/) | React 19 + Vite app: Leaflet map, bounty/claim/attest flows, photo evidence upload · 144 Vitest tests |
+| [`web/data/hotspots.json`](web/data/hotspots.json) | Generated hotspot fixture used by the pusher |
 | [`docs/asap-demo-30s.mp4`](docs/asap-demo-30s.mp4) | 30 s demo cut: the gap, the bounty, the payout |
 
 ## Quickstart
@@ -45,11 +46,15 @@ forge script script/Deploy.s.sol --rpc-url monad_mainnet \
 **Web app:**
 
 ```bash
-cd web/app && python3 -m http.server 4173     # local
-wrangler deploy                                # Cloudflare Workers + assets
+cd web/frontend
+npm install
+npm run dev          # http://localhost:5173 — app plus a dev evidence endpoint
+npm run build        # typecheck, then bundle to dist/
+npm test             # 144 Vitest tests
+npx wrangler deploy  # Cloudflare Worker: static assets + /api/evidence
 ```
 
-Live: **https://asap-monad.x0r.my.id**
+Live: **https://asapmonad.web.id** · chain `10143`
 
 **Live data:**
 
@@ -78,6 +83,8 @@ Verification is an **exact match** on both contracts (compiler `0.8.24`, optimiz
 
 **Mechanism invariants:** bond ≥ pool makes fake reports unprofitable · evidence can't predate the satellite pass · a claim settles once · the contract holds zero balance in every terminal state.
 
+**Photo evidence:** the claim form takes a photo, compresses it to 1280 px JPEG in the browser, and uploads it to a Worker that stores the bytes in R2 keyed by their SHA-256. The evidence string written on-chain is that content-addressed URL, so the same photo always resolves to the same immutable object and nobody can overwrite someone else's proof. The claim button stays disabled until the photo is stored and the required bond has actually been read from the contract.
+
 ## Why Monad
 
 - **Embarrassingly parallel workload.** Every hotspot is an independent escrow. ~22,760 detections/day × claims × attestations is tens of thousands of *independent* state transitions — the case parallel execution exists for.
@@ -96,7 +103,8 @@ Verification is an **exact match** on both contracts (compiler `0.8.24`, optimiz
 | End-to-end settlement | ✅ bounty #1 verified, responder paid |
 | Deployed to Monad testnet | ✅ both contracts, verified |
 | Pusher script writing hotspots on-chain | ✅ 180 hotspots, batch `0x89eb56…` |
-| Web app wired to the chain | ✅ [asap-monad.x0r.my.id](https://asap-monad.x0r.my.id) |
+| Web app wired to the chain | ✅ [asapmonad.web.id](https://asapmonad.web.id) — React 19 + Vite |
+| Web app tests | ✅ 144/144 Vitest (lib, hooks, evidence, both interaction components) |
 | Mainnet deploy + verification | ⬜ before 16:30 |
 | Contract addresses in README | ✅ |
 | Public live URL | ✅ custom domain on Cloudflare |
