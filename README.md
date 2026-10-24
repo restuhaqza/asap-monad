@@ -71,21 +71,15 @@ Open [hotspot #3 on the mainnet app](https://asapmonad.web.id/portal#h=3) and th
 
 ```mermaid
 flowchart LR
-    subgraph data["Data layer"]
-        A["NASA FIRMS CSV"] --> B["fetch-hotspots.py"]
-    end
-    subgraph chain["Monad"]
-        B -->|"commitBatch + publish"| C["HotspotRegistry<br/>append-only + source hash"]
-        C --> D["FireBounty<br/>escrow · bonds · quorum"]
-    end
-    subgraph ground["Ground"]
-        R["Responder"] -->|"claim + bond ≥ pool"| D
-        R --> P["Photo → Worker → R2<br/>keyed by SHA-256"]
-    end
-    D -->|"2 approvals"| PAY["Payout in one block"]
-    D -->|"deadline passes"| EXP["BountyExpired"]
-    APP["React app<br/>no indexer, no backend"] -->|"paced getHotspot"| C
-    APP -->|"getBounty / getClaim"| D
+    CSV["NASA FIRMS CSV"] --> FETCH["fetch-hotspots.py"]
+    FETCH -->|"commitBatch + publish"| REG["HotspotRegistry<br/>append-only + source hash"]
+    REG --> BOUNTY["FireBounty<br/>escrow · bonds · quorum"]
+    RESP["Responder"] -->|"claim, bond ≥ pool"| BOUNTY
+    RESP --> PHOTO["Photo → Worker → R2<br/>keyed by SHA-256"]
+    BOUNTY -->|"2 approvals"| PAY["Payout in one block"]
+    BOUNTY -->|"deadline passes"| EXP["BountyExpired"]
+    APP["React app<br/>no indexer, no backend"] -->|"paced getHotspot"| REG
+    APP -->|"getBounty / getClaim"| BOUNTY
 ```
 
 - **Two contracts, nothing else.** `HotspotRegistry` is an append-only record anchored to the source file; `FireBounty` holds escrow, bonds and quorum. No token, no proxy, no owner escape hatch over user funds.
